@@ -10,6 +10,8 @@ import (
 func Consola(){
 	//VARIABLES
 	var continuar bool = true
+    var sesion Usuario
+    var discos []Disco
 
 	//CONSOLA DE COMANDOS
     fmt.Println("****************************************************************************************************")
@@ -38,7 +40,7 @@ func Consola(){
 
         //Ejecutar Instruccion
         fmt.Println("EJECUCIÓN:")
-        //ejecutar(comando, sesion, discos);
+        Ejecutar(&comando, &sesion, &discos);
         comando = ""  
         fmt.Println()
 	}
