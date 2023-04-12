@@ -13,7 +13,7 @@ func Ejecutar(cadena *string, sesion *Usuario, discos *[]Disco){
 	Analizar(cadena, &parametros)
 
 	//IGNORAR COMENTARIOS
-	if len(parametros) == 0 {
+	if len(parametros) ==  0 {
 		return
 	}
 
@@ -24,7 +24,7 @@ func Ejecutar(cadena *string, sesion *Usuario, discos *[]Disco){
 
 	switch tipo {
 		case "mkdisk":
-			//Mkdisk(parametros)
+			Mkdisk(&parametros)
 		case "rmdisk":
 			//rmdisk(parametros)
 		case "fdisk":
