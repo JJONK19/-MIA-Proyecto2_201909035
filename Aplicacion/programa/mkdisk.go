@@ -1,7 +1,6 @@
 package programa
 
 import (
-	"bytes"
 	"encoding/binary"
 	"fmt"
 	"math/rand"
@@ -160,18 +159,8 @@ func Mkdisk(parametros *[]string) {
         copy(mbr.mbr_tamano[:], strconv.Itoa(-1))
     }
 
-    //CARGAR EL BUFFER
-    archivo.Seek(0,0)
-    apuntador := &mbr
-    var bin bytes.Buffer
-    binary.Write(&bin, binary.BigEndian, apuntador)
-
     //ESCRIBIR EL STRUCT EN EL DISCO
-    _, err = archivo.Write(bin.Bytes())
-
-	if err != nil {
-		fmt.Println("Error escribiendo en archivo:", err)
-	}
-
+    archivo.Seek(0, 0)                   
+    binary.Write(archivo, binary.LittleEndian, &mbr)
     fmt.Println("MENSAJE: Archivo creado correctamente.")
 }

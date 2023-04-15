@@ -1,5 +1,8 @@
 package programa
 
+import(
+    "strconv"
+)
 //********** PARTICION ********** 
 type Particion struct {
     part_status [1]byte     // 0 para desactivada, 1 para activa
@@ -35,8 +38,8 @@ type EBR struct{
 //el disco. Se usa para encontrar los espacios vacíos.
 
 type Position struct {
-    inicio  int32
-    fin     int32
+    inicio  int
+    fin     int
     tipo    byte
     nombre  string
     tamaño  int
@@ -48,11 +51,19 @@ func (p OrdenarPosicion) Less(i, j int) bool {
     return p[i].inicio < p[j].inicio
 }
 
+func (o OrdenarPosicion) Len() int {
+    return len(o)
+}
+
+func (o OrdenarPosicion) Swap(i, j int) {
+    o[i], o[j] = o[j], o[i]
+}
+
 //********** ESPACIOS VACIOS **********
 //Indica el inicio y fin de los espacios vacíos (particiones primarias y extendida)
 type Libre struct{
-    inicio int32
-    tamaño int32
+    inicio int
+    tamaño int
 }
 
 type OrdenarLibre []Libre
@@ -61,11 +72,20 @@ func (p OrdenarLibre) Less(i, j int) bool {
     return p[i].tamaño < p[j].tamaño
 }
 
+func (p OrdenarLibre) Len() int {
+    return len(p)
+}
+
+func (p OrdenarLibre) Swap(i, j int) {
+    p[i], p[j] = p[j], p[i]
+}
+
+
 //Indica el espacio vacío dentro de la partición expandida
 type LibreL struct{
-    inicioEBR int32              //Para leer el EBR de la partición
-    finLogica int32              //Donde termina la particion logica
-    tamaño int32                 //Espacio Libre
+    inicioEBR int              //Para leer el EBR de la partición
+    finLogica int              //Donde termina la particion logica
+    tamaño int                 //Espacio Libre
     cabecera bool              //Para diferenciar si es la cabecera de la extendida
 }
 
@@ -74,6 +94,15 @@ type OrdenarLibreL []LibreL
 func (p OrdenarLibreL) Less(i, j int) bool {
     return p[i].tamaño < p[j].tamaño
 }
+
+func (p OrdenarLibreL) Len() int {
+    return len(p)
+}
+
+func (p OrdenarLibreL) Swap(i, j int) {
+    p[i], p[j] = p[j], p[i]
+}
+
 
 //********** MONTAR DISCOS **********
 //Maneja la posición de la partición dentro del disco
@@ -158,4 +187,16 @@ type Usuario struct {
     id_grp   string // Numero de grupo
 }
 
+//*********MANEJO DE BYTES EN EL ARCHIVO*********
+
+//Pasar bytes a int. Se estan manejando como cadenas, entonces se debe de castear de bytes a cadenas y luego a int
+func ToInt(numero []byte) int {
+	str := string(numero)
+	salida, err := strconv.Atoi(str) 
+	if err != nil {
+	
+	}
+
+	return salida
+}
 
