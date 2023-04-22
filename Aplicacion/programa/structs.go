@@ -1,35 +1,37 @@
 package programa
 
-import(
-    "strconv"
+import (
+	"strconv"
+    "strings"
 )
-//********** PARTICION ********** 
+
+//********** PARTICION **********
 type Particion struct {
-    part_status [1]byte     // 0 para desactivada, 1 para activa
-    part_type   [1]byte     // Partición Primaria o Extendida (p ó e)
-    part_fit    [1]byte     // Fit: Best(b), First(f), Worst(w)
-    part_start  [40]byte    // Posicion inicial de la partición
-    part_s      [40]byte    // Tamaño de la partición (bytes)
-    part_name   [30]byte    // Nombre de la partición
+    Part_status [1]byte     // 0 para desactivada, 1 para activa
+    Part_type   [1]byte     // Partición Primaria o Extendida (p ó e)
+    Part_fit    [1]byte     // Fit: Best(b), First(f), Worst(w)
+    Part_start  [40]byte    // Posicion inicial de la partición
+    Part_s      [40]byte    // Tamaño de la partición (bytes)
+    Part_name   [30]byte    // Nombre de la partición
 }
 
 //********** MBR **********
 type MBR struct{
-    mbr_tamano [40]byte                         //Tamaño en bytes del disco
-    mbr_fecha_creacion [30]byte              	//Fecha y Hora 
-    mbr_dsk_signature [40]byte                  //Int random que identifica el disco
-    dsk_fit	[1]byte                            	//Fit: Best(b), First(f), Worst(w)
-    mbr_partition [4]Particion                  //Particiones en Array (para más facilidad de acceso)
+    Mbr_tamano [40]byte                         //Tamaño en bytes del disco
+    Mbr_fecha_creacion [30]byte              	//Fecha y Hora 
+    Mbr_dsk_signature [40]byte                  //Int random que identifica el disco
+    Dsk_fit	[1]byte                            	//Fit: Best(b), First(f), Worst(w)
+    Mbr_partition [4]Particion                  //Particiones en Array (para más facilidad de acceso)
 }
 
 //********** EBR **********
 type EBR struct{
-    part_status [1]byte                       //0 para desactivada, 1 para activa
-    part_fit [1]byte                            //Fit: Best(b), First(f), Worst(w)
-    part_start [40]byte                         //Posicion inicial de la la partición
-    part_s [40]byte                             //Tamaño de la partición(bytes)
-    part_next [40]byte                          //Es -1  si no hay otro EBR
-    part_name [40]byte                         //Nombre de la partición logica
+    Part_status [1]byte                       //0 para desactivada, 1 para activa
+    Part_fit [1]byte                            //Fit: Best(b), First(f), Worst(w)
+    Part_start [40]byte                         //Posicion inicial de la la partición
+    Part_s [40]byte                             //Tamaño de la partición(bytes)
+    Part_next [40]byte                          //Es -1  si no hay otro EBR
+    Part_name [40]byte                         //Nombre de la partición logica
 
 }
 
@@ -108,8 +110,8 @@ func (p OrdenarLibreL) Swap(i, j int) {
 //Maneja la posición de la partición dentro del disco
 type Montada struct {
     id       string
-    posEBR   int32   // default:  -1
-    posMBR   int32   // default:  -1
+    posEBR   int   // default:  -1
+    posMBR   int   // default:  -1
     nombre   string
     tamaño   int
 }
@@ -118,63 +120,63 @@ type Montada struct {
 type Disco struct {
     ruta        string
     nombre      string
-    contador    int32    // default: 1
+    contador    int    // default: 1
     particiones []Montada
 }
 
 //********** SUPER BLOQUE **********
 
 type Sbloque struct {
-    s_filesystem_type    [1]byte
-    s_inodes_count       [40]byte
-    s_blocks_count       [40]byte
-    s_free_blocks_count  [40]byte
-    s_free_inodes_count  [40]byte
-    s_mtime              [30]byte
-    s_umtime             [30]byte
-    s_mnt_count          [40]byte
-    s_magic              [10]byte
-    s_inode_s            [40]byte
-    s_block_s            [40]byte
-    s_firts_ino          [40]byte
-    s_first_blo          [40]byte
-    s_bm_inode_start     [40]byte
-    s_bm_block_start     [40]byte
-    s_inode_start        [40]byte
-    s_block_start        [40]byte
+    S_filesystem_type    [1]byte
+    S_inodes_count       [40]byte
+    S_blocks_count       [40]byte
+    S_free_blocks_count  [40]byte
+    S_free_inodes_count  [40]byte
+    S_mtime              [30]byte
+    S_umtime             [30]byte
+    S_mnt_count          [40]byte
+    S_magic              [10]byte
+    S_inode_s            [40]byte
+    S_block_s            [40]byte
+    S_firts_ino          [40]byte
+    S_first_blo          [40]byte
+    S_bm_inode_start     [40]byte
+    S_bm_block_start     [40]byte
+    S_inode_start        [40]byte
+    S_block_start        [40]byte
 }
 
 
 //********** INODOS **********
 type Inodo struct {
-    i_uid       [10]byte
-    i_gid       [10]byte
-    i_s         [40]byte
-    i_atime     [30]byte
-    i_ctime     [30]byte
-    i_mtime     [30]byte
-    i_block     [16]byte
-    i_type      [1]byte 
-    i_perm      [3]byte
+    I_uid       [10]byte
+    I_gid       [10]byte
+    I_s         [40]byte
+    I_atime     [30]byte
+    I_ctime     [30]byte
+    I_mtime     [30]byte
+    I_block     [16]byte
+    I_type      [1]byte 
+    I_perm      [3]byte
 }
 
 //********** BLOQUES **********
 type Content struct {
-    b_name [12]byte
-    b_inodo [4]byte
+    B_name [12]byte
+    B_inodo [4]byte
 }
 
 type Bcarpetas struct {
-    b_content [4]Content
+    B_content [4]Content
 }
 
 
 type Barchivos struct {
-    b_content [64]byte
+    B_content [64]byte
 }
 
 type Bapuntadores struct {
-    b_pointers [16]int
+    B_pointers [16]int
 }
 
 //********** LOGIN **********
@@ -191,7 +193,7 @@ type Usuario struct {
 
 //Pasar bytes a int. Se estan manejando como cadenas, entonces se debe de castear de bytes a cadenas y luego a int
 func ToInt(numero []byte) int {
-	str := string(numero)
+	str := strings.Trim(string(numero[:]), "\x00") 
 	salida, err := strconv.Atoi(str) 
 	if err != nil {
 	

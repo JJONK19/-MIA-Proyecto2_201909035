@@ -1,6 +1,6 @@
 package programa
 
-import(
+import (
 	"unicode"
 )
 
@@ -8,55 +8,55 @@ func Analizar(cadena *string, parametros *[]string){
 
 	var estado int = 0
 	var temp string = ""
-
+	*cadena += " " 
 	//RECORRER LA CADENA
-	for _, letra := range *cadena{
+	for i := 0; i < len(*cadena); i++{
 		switch estado {
+	
 			case 0:
-				if unicode.IsLetter(letra) {
+				if unicode.IsLetter(rune((*cadena)[i])) {
 					estado = 1
-					temp += string(letra)
-				}else if letra == '>' {
+					temp += string((*cadena)[i])
+				}else if (*cadena)[i] == '>' {
 					estado = 2
-				} else if letra == '#' {
-				estado = 3
+				} else if (*cadena)[i] == '#' {
+					estado = 3
 				}
 
 			//Palabras reservadas
 			case 1: 
-				if letra == ' ' {
+				if (*cadena)[i] == ' ' {
 					*parametros = append(*parametros, temp)
 					temp = ""
 					estado = 0
 				} else {
-					temp += string(letra)
+					temp += string((*cadena)[i])
 				}
 
 			//Parametros
 			case 2: 
-				if letra == '"' {
+				if (*cadena)[i] == '"' {
 					estado = 21
-				} else if letra == ' ' {
+				} else if (*cadena)[i] == ' ' {
 					*parametros = append(*parametros, temp)
 					temp = ""
 					estado = 0
 				} else {
-					temp += string(letra)
+					temp += string((*cadena)[i])
 				}
 
 			//Reconocer cadenas dentro de parametros
 			case 21: 
-				if letra == '"' {
+				if (*cadena)[i] == '"' {
 					*parametros = append(*parametros, temp)
 					temp = ""
 					estado = 0
 				} else {
-					temp += string(letra)
+					temp += string((*cadena)[i])
 				}
 			
 			//Comentarios
 			case 3: 
-			
 		}
 	}
 }

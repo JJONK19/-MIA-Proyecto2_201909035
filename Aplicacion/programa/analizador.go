@@ -28,9 +28,9 @@ func Ejecutar(cadena *string, sesion *Usuario, discos *[]Disco){
 		case "rmdisk":
 			Rmdisk(&parametros)
 		case "fdisk":
-			//fdisk(parametros)
+			Fdisk(&parametros)
 		case "mount":
-			//mount(parametros, discos)
+			Mount(&parametros, discos)
 		case "unmount":
 			//unmount(parametros, discos)
 		case "mkfs":

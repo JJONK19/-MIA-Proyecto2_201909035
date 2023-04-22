@@ -78,6 +78,7 @@ func Fdisk(parametros *[]string) {
 
     if !required {
         fmt.Println("ERROR: La instrucción fdisk carece de todos los parametros obligatorios.")
+        return
     }
 
     //VALIDACION DE PARAMETROS
@@ -183,7 +184,7 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
         var finExtendida int //Posicion donde acaba la extendida
         ebr := EBR{} //Auxiliar para leer los ebr
         var espacios OrdenarLibreL //Posiciones de los espacios libres
-        var cabecera_visitada bool //Indica si es la cabecera la revisada
+        var cabecera_visitada bool = false //Indica si es la cabecera la revisada
         var continuar bool = true //Salir del while de busqueda de espacios
         var existe bool = false //Indica si existe la particion
         var contador int = 0 //Numero de particiones en la extendida
@@ -191,7 +192,7 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
 
         //BUSCAR LA PARTICIÓN EXTENDIDA
         for i := 0; i < 4; i++ {
-            if mbr.mbr_partition[i].part_type[0] == byte('e') {
+            if mbr.Mbr_partition[i].Part_type[0] == byte('e') {
                 posicion = i
                 break
             }
@@ -203,30 +204,30 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
         }
 
         // MOVER EL PUNTERO A LA EXTENDIDA Y LEER EL EBR CABECERA
-        posExtendida =  ToInt(mbr.mbr_partition[posicion].part_start[:])
-        finExtendida = posExtendida + ToInt(mbr.mbr_partition[posicion].part_s[:])
+        posExtendida =  ToInt(mbr.Mbr_partition[posicion].Part_start[:])
+        finExtendida = posExtendida + ToInt(mbr.Mbr_partition[posicion].Part_s[:])
         archivo.Seek(int64(posExtendida), 0)
         binary.Read(archivo, binary.LittleEndian, &ebr)
 
         // BUSCAR SI ESTA REPETIDA LA PARTICION Y ENCONTRAR ESPACIOS VACIOS
         for continuar {
-            if strings.Trim(string(ebr.part_name[:]), "\x00") == *nombre {
+            if strings.Trim(string(ebr.Part_name[:]), "\x00") == *nombre {
                 existe = true
                 break
             }
 
             if !cabecera_visitada {
                 contador++
-                if ToInt(ebr.part_s[:]) == 0 {
+                if ToInt(ebr.Part_s[:]) == 0 {
                     temp := LibreL {
                         cabecera: true,
                         inicioEBR: posExtendida,
-                        finLogica: ToInt(ebr.part_start[:]),
+                        finLogica: ToInt(ebr.Part_start[:]),
                     }
-                    if ToInt(ebr.part_next[:]) == -1 {
+                    if ToInt(ebr.Part_next[:]) == -1 {
                         temp.tamaño = finExtendida - temp.finLogica
                     } else {
-                        temp.tamaño = ToInt(ebr.part_next[:]) - temp.finLogica
+                        temp.tamaño = ToInt(ebr.Part_next[:]) - temp.finLogica
                     }
         
                     if temp.tamaño > 0 {
@@ -236,12 +237,12 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
                     temp := LibreL {
                         cabecera: false,
                         inicioEBR: posExtendida,
-                        finLogica: ToInt(ebr.part_start[:]) + ToInt(ebr.part_s[:]) - 1,
+                        finLogica: ToInt(ebr.Part_start[:]) + ToInt(ebr.Part_s[:]) - 1,
                     }
-                    if ToInt(ebr.part_next[:]) == -1 {
+                    if ToInt(ebr.Part_next[:]) == -1 {
                         temp.tamaño = finExtendida - (temp.finLogica + 1)
                     } else {
-                        temp.tamaño = ToInt(ebr.part_next[:]) - (temp.finLogica + 1)
+                        temp.tamaño = ToInt(ebr.Part_next[:]) - (temp.finLogica + 1)
                     }
         
                     if temp.tamaño > 0 {
@@ -250,10 +251,10 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
                 }
         
                 cabecera_visitada = true
-                if ToInt(ebr.part_next[:]) == -1 {
+                if ToInt(ebr.Part_next[:]) == -1 {
                     continuar = false
                 } else {
-                    posExtendida = ToInt(ebr.part_next[:])
+                    posExtendida = ToInt(ebr.Part_next[:])
                     archivo.Seek(int64(posExtendida), 0)
                     binary.Read(archivo, binary.LittleEndian, &ebr)
                 }
@@ -262,21 +263,21 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
                 temp := LibreL {
                     cabecera: false,
                     inicioEBR: posExtendida,
-                    finLogica: ToInt(ebr.part_start[:]) + ToInt(ebr.part_s[:]) - 1,
+                    finLogica: ToInt(ebr.Part_start[:]) + ToInt(ebr.Part_s[:]) - 1,
                 }
-                if ToInt(ebr.part_next[:]) == -1 {
+                if ToInt(ebr.Part_next[:]) == -1 {
                     temp.tamaño = finExtendida - (temp.finLogica + 1)
                 } else {
-                    temp.tamaño = ToInt(ebr.part_next[:]) - (temp.finLogica + 1)
+                    temp.tamaño = ToInt(ebr.Part_next[:]) - (temp.finLogica + 1)
                 }
         
                 if temp.tamaño > 0 {
                     espacios = append(espacios, temp)
                 }
-                if ToInt(ebr.part_next[:]) == -1 {
+                if ToInt(ebr.Part_next[:]) == -1 {
                     continuar = false
                 } else {
-                    posExtendida = ToInt(ebr.part_next[:])
+                    posExtendida = ToInt(ebr.Part_next[:])
                     archivo.Seek(int64(posExtendida), 0)
                     binary.Read(archivo, binary.LittleEndian, &ebr)
                 }
@@ -351,31 +352,31 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
             //Leer y reescribir EBR padre
             archivo.Seek(int64(espacios[posEspacio].inicioEBR), 0)
             binary.Read(archivo, binary.LittleEndian, &ebr)
-            copy(ebr.part_name[:], []byte(*nombre))
-            ebr.part_fit[0] = *fit
-            copy(ebr.part_s[:], strconv.Itoa(*tamaño))
-            ebr.part_status[0] = '0'
+            copy(ebr.Part_name[:], []byte(*nombre))
+            ebr.Part_fit[0] = *fit
+            copy(ebr.Part_s[:], strconv.Itoa(*tamaño))
+            ebr.Part_status[0] = '0'
             archivo.Seek(int64(espacios[posEspacio].inicioEBR), 0)
             binary.Write(archivo, binary.LittleEndian, &ebr)
             fmt.Println("MENSAJE: Particion lógica creada correctamente.")
         }else{
             posEbr := espacios[posEspacio].finLogica + 1
-            next := 0
             //Leer y reescribir el EBR padre
             archivo.Seek(int64(espacios[posEspacio].inicioEBR), 0)
             binary.Read(archivo, binary.LittleEndian, &ebr)
-            next = ToInt(ebr.part_next[:])
-            copy(ebr.part_next[:], strconv.Itoa(posEbr))
+            copy(ebr.Part_next[:], strconv.Itoa(posEbr))
             archivo.Seek(int64(espacios[posEspacio].inicioEBR), 0)
             binary.Write(archivo, binary.LittleEndian, &ebr)
-
+            
+            fmt.Println(posEbr)
+            fmt.Println(espacios[posEspacio].inicioEBR)
             //Crear nueva particion (EBR)
-            ebr.part_fit[0] = *fit
-            copy(ebr.part_name[:], []byte(*nombre))
-            ebr.part_status[0] = '0'
-            copy(ebr.part_s[:], strconv.Itoa(*tamaño))
-            copy(ebr.part_start[:], strconv.Itoa(posEbr + int(binary.Size(EBR{}))))
-            copy(ebr.part_next[:], strconv.Itoa(next))
+            ebr.Part_fit[0] = *fit
+            copy(ebr.Part_name[:], []byte(*nombre))
+            ebr.Part_status[0] = '0'
+            copy(ebr.Part_s[:], strconv.Itoa(*tamaño))
+            copy(ebr.Part_start[:], strconv.Itoa(posEbr + int(binary.Size(EBR{}))))
+            copy(ebr.Part_next[:], strconv.Itoa(-1))
             archivo.Seek(int64(posEbr), 0)
             binary.Write(archivo, binary.LittleEndian, &ebr)
             fmt.Println("MENSAJE: Particion lógica creada correctamente.")
@@ -392,11 +393,11 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
     
         // BUSCAR SI HAY ESPACIO EN EL MBR Y DE PASO VER SI EXISTE LA EXTENDIDA
         for i := 0; i < 4; i++ {
-            if mbr.mbr_partition[i].part_name[0] == '0' {
+            if len(strings.Trim(string(mbr.Mbr_partition[i].Part_name[:]), "\x00")) == 0 {
                 posicion = i
             }
     
-            if mbr.mbr_partition[i].part_type[0] == 'e' {
+            if mbr.Mbr_partition[i].Part_type[0] == byte('e') {
                 extendedExist = true
             }
     
@@ -405,7 +406,7 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
             }
         }
     
-        if extendedExist == true && *tipo == 'e' {
+        if extendedExist && *tipo == 'e' {
             fmt.Println("ERROR: Solo puede existir una partición extendida a la vez.")
             return
         }
@@ -417,14 +418,14 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
 
         //DETERMINAR SI EXISTE LA PARTICION Y MARCAR LAS POSICIONES DE CADA PARTICION
         for i := 0; i < 4; i++ {
-            if mbr.mbr_partition[i].part_name[0] != '0' {
+            if len(strings.Trim(string(mbr.Mbr_partition[i].Part_name[:]), "\x00")) != 0 {
                 var temp Position
-                temp.inicio = ToInt(mbr.mbr_partition[i].part_start[:])
-                temp.fin = ToInt(mbr.mbr_partition[i].part_start[:]) + ToInt(mbr.mbr_partition[i].part_s[:]) - 1
-                temp.nombre = string(mbr.mbr_partition[i].part_name[:])
+                temp.inicio = ToInt(mbr.Mbr_partition[i].Part_start[:])
+                temp.fin = ToInt(mbr.Mbr_partition[i].Part_start[:]) + ToInt(mbr.Mbr_partition[i].Part_s[:]) - 1
+                temp.nombre = string(mbr.Mbr_partition[i].Part_name[:])
                 posiciones = append(posiciones, temp)
 
-                if *nombre == strings.Trim(string(mbr.mbr_partition[i].part_name[:]), "\x00"){
+                if *nombre == strings.Trim(string(mbr.Mbr_partition[i].Part_name[:]), "\x00"){
                     existe = true
                 }
             }
@@ -442,7 +443,7 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
         if len(posiciones) == 0 {
             var temp Libre
             temp.inicio = int(binary.Size(MBR{})) + 1
-            temp.tamaño = ToInt(mbr.mbr_tamano[:]) - int(binary.Size(MBR{})) + 1
+            temp.tamaño = ToInt(mbr.Mbr_tamano[:]) - int(binary.Size(MBR{})) + 1
             espacios = append(espacios, temp)
         }else{
             for i := 0; i < len(posiciones); i++ {
@@ -476,7 +477,7 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
                     }
             
                     // Espacio entre la primera particion y el fin
-                    free = ToInt(mbr.mbr_tamano[:]) - (x.fin + 1)
+                    free = ToInt(mbr.Mbr_tamano[:]) - (x.fin + 1)
                     if free > 0 {
                         temp.inicio = x.fin + 1
                         temp.tamaño = free
@@ -491,7 +492,7 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
                         espacios = append(espacios, temp)
                     }
                 } else {
-                    free = ToInt(mbr.mbr_tamano[:]) - (x.fin + 1)
+                    free = ToInt(mbr.Mbr_tamano[:]) - (x.fin + 1)
                     if free > 0 {
                         temp.inicio = x.fin + 1
                         temp.tamaño = free
@@ -502,7 +503,7 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
         } 
 
         if len(espacios) == 0 {
-            fmt.Println("ERROR: No hay espacio disponible en el disco.")
+            fmt.Println("ERROR: No hay espacio disponible en el disco (1).")
             return
         }
         
@@ -517,7 +518,7 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
             }
         
             if posEspacio == -1 {
-                fmt.Println("ERROR: No hay espacio disponible en el disco.")
+                fmt.Println("ERROR: No hay espacio disponible en el disco (2).")
                 archivo.Close()
                 return
             }
@@ -535,7 +536,7 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
             }
     
             if posEspacio == -1 {
-                fmt.Println("ERROR: No hay espacio disponible en el disco.")
+                fmt.Println("ERROR: No hay espacio disponible en el disco. (3)")
                 return
             }
         }
@@ -543,23 +544,24 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
         // BUSCAR ESPACIO PARA INSERTAR - WORST FIT
         if *fit == byte('w') {
             sort.Sort(OrdenarLibre(espacios))
+            
             if *tamaño <= espacios[len(espacios)-1].tamaño {
                 posEspacio = len(espacios) - 1
             }
         
             if posEspacio == -1 {
-                fmt.Println("ERROR: No hay espacio disponible en el disco.")
+                fmt.Println("ERROR: No hay espacio disponible en el disco. (4)")
                 return
             }
         }
 
         //CREAR PARTICION
-        mbr.mbr_partition[posicion].part_fit[0] = *fit
-        copy(mbr.mbr_partition[posicion].part_name[:], []byte(*nombre))
-        mbr.mbr_partition[posicion].part_status[0] = '0'
-        copy(mbr.mbr_partition[posicion].part_s[:], strconv.Itoa(*tamaño))
-        mbr.mbr_partition[posicion].part_type[0] = *tipo
-        copy(mbr.mbr_partition[posicion].part_start[:], strconv.Itoa(espacios[posEspacio].inicio))   
+        mbr.Mbr_partition[posicion].Part_fit[0] = *fit
+        copy(mbr.Mbr_partition[posicion].Part_name[:], []byte(*nombre))
+        mbr.Mbr_partition[posicion].Part_status[0] = '0'
+        copy(mbr.Mbr_partition[posicion].Part_s[:], strconv.Itoa(*tamaño))
+        mbr.Mbr_partition[posicion].Part_type[0] = *tipo
+        copy(mbr.Mbr_partition[posicion].Part_start[:], strconv.Itoa(espacios[posEspacio].inicio))   
 
         archivo.Seek(0,0)                   
         binary.Write(archivo, binary.LittleEndian, &mbr)
@@ -567,11 +569,11 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
         //CREAR EL EBR INICIAL EN CASO DE SER EXTENDIDA
         if *tipo == byte('e'){
             ebr := EBR{}
-            copy(ebr.part_name[:], []byte(""))
-            copy(ebr.part_next[:], []byte(strconv.Itoa(-1)))
-            copy(ebr.part_start[:], strconv.Itoa(espacios[posEspacio].inicio + 1 + int(binary.Size(EBR{}))))
-            copy(ebr.part_s[:], strconv.Itoa(0))
-            ebr.part_status[0] = '0'
+            copy(ebr.Part_name[:], []byte(""))
+            copy(ebr.Part_next[:], []byte(strconv.Itoa(-1)))
+            copy(ebr.Part_start[:], strconv.Itoa(espacios[posEspacio].inicio + 1 + int(binary.Size(EBR{}))))
+            copy(ebr.Part_s[:], strconv.Itoa(0))
+            ebr.Part_status[0] = '0'
             archivo.Seek(int64(espacios[posEspacio].inicio), 0)
             binary.Write(archivo, binary.LittleEndian, &ebr)
         }

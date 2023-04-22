@@ -146,17 +146,17 @@ func Mkdisk(parametros *[]string) {
     }
 
     //CREAR EL MBR Y LLENARLO DE VALORES DEFAULT
-    copy(mbr.mbr_tamano[:], strconv.Itoa(tamaño))
-    copy(mbr.mbr_dsk_signature[:], strconv.Itoa(rand.Intn(9999)))
-    copy(mbr.mbr_fecha_creacion[:], []byte(time.Now().String()))
-    mbr.dsk_fit[0] = fitChar
+    copy(mbr.Mbr_tamano[:], strconv.Itoa(tamaño))
+    copy(mbr.Mbr_dsk_signature[:], strconv.Itoa(rand.Intn(9999)))
+    copy(mbr.Mbr_fecha_creacion[:], []byte(time.Now().String()))
+    mbr.Dsk_fit[0] = fitChar
 
     for i := 0; i < 4; i++ {
-        copy(mbr.mbr_partition[i].part_name[:], []byte(""))
-        mbr.mbr_partition[i].part_status[0] = vacio
-        copy(mbr.mbr_tamano[:], strconv.Itoa(0))
-        mbr.mbr_partition[i].part_fit[0] = fitChar
-        copy(mbr.mbr_tamano[:], strconv.Itoa(-1))
+        copy(mbr.Mbr_partition[i].Part_name[:], []byte(""))
+        mbr.Mbr_partition[i].Part_status[0] = vacio
+        copy(mbr.Mbr_partition[i].Part_s[:], strconv.Itoa(0))
+        mbr.Mbr_partition[i].Part_fit[0] = fitChar
+        copy(mbr.Mbr_partition[i].Part_start[:], strconv.Itoa(-1))
     }
 
     //ESCRIBIR EL STRUCT EN EL DISCO
