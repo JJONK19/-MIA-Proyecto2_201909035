@@ -202,3 +202,8 @@ func ToInt(numero []byte) int {
 	return salida
 }
 
+func ToString(bytes []byte) string {
+	str := strings.Trim(string(bytes[:]), "\x00") 
+
+	return str
+}
