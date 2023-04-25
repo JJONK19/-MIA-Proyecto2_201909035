@@ -1,8 +1,10 @@
 package programa
 
 import (
+	"bytes"
+	"fmt"
 	"strconv"
-    "strings"
+	"strings"
 )
 
 //********** PARTICION **********
@@ -155,7 +157,7 @@ type Inodo struct {
     I_atime     [30]byte
     I_ctime     [30]byte
     I_mtime     [30]byte
-    I_block     [16]byte
+    I_block     [80]byte
     I_type      [1]byte 
     I_perm      [3]byte
 }
@@ -206,4 +208,34 @@ func ToString(bytes []byte) string {
 	str := strings.Trim(string(bytes[:]), "\x00") 
 
 	return str
+}
+
+func ToStringArray(sliceTemp []byte) []int {
+    salida := []int{}
+    for i := 0; i < 16; i++ {
+        if len(sliceTemp) == 0 {
+            break
+        }
+        j := bytes.IndexByte(sliceTemp, '!')
+        if j == -1 {
+            j = len(sliceTemp)
+        }
+        temp, err := strconv.Atoi(string(sliceTemp[:j]))
+        if err != nil {
+            fmt.Println("Ocurrio un error al convertir")
+        }
+        salida[i] = temp
+        sliceTemp = sliceTemp[j+1:]
+    }
+
+    return salida
+}
+
+func ToByteArray(numeros []int) []byte{
+    sliceTemp := []byte{}
+    for _, i := range numeros {
+        sliceTemp = append(sliceTemp, []byte(strconv.Itoa(i))...)
+		sliceTemp = append(sliceTemp, '!')
+    }
+    return sliceTemp
 }

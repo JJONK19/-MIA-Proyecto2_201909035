@@ -12,6 +12,7 @@ import (
     "sort"
     "strconv"
     "math"
+    "time"
 )
 
 func Rep(parametros *[]string, discos *[]Disco) {
@@ -65,6 +66,7 @@ func Rep(parametros *[]string, discos *[]Disco) {
         return
     }
 
+    //REMOVER LOS NUMEROS DEL ID
     posicion := 0
     for i := 0; i < len(id); i++ {
         if unicode.IsDigit(rune(id[i])) {
@@ -662,7 +664,330 @@ func Disk(discos *[]Disco, posDisco int, ruta *string){
 }
 
 func Tree(discos *[]Disco, posDisco int, posParticion int, ruta *string){
+    //VARIABLES
+    codigo := ""
+    disc_uso := (*discos)[posDisco] //Disco en uso
+    part_uso := disc_uso.particiones[posParticion] //Particion Montada
+    posInicio := -1 //Posicion donde inicia la particion
+    sblock := Sbloque{} //Para leer el superbloque
+    comando := ""
+    posInodos := -1
+    posBloques := -1
+
+    //VERIFICAR QUE EL ARCHIVO EXISTE
+    archivo, err := os.OpenFile(disc_uso.ruta, os.O_RDWR, 0644) //Para leer el archivo
+    if err != nil {
+        fmt.Println("ERROR: No se encontro el disco.")
+        return
+    }
+
+    //DETERMINAR LA POSICION DE INICIO PARA LEER LA PARTICION
+    if part_uso.posMBR != -1 {
+		var mbr MBR
+        archivo.Seek(0, 0)
+        binary.Read(archivo, binary.LittleEndian, &mbr)
+        posInicio = ToInt(mbr.Mbr_partition[part_uso.posMBR].Part_start[:])
+    } else {
+		var ebr EBR
+        archivo.Seek(int64(part_uso.posEBR), 0)
+        binary.Read(archivo, binary.LittleEndian, &ebr)
+        posInicio = ToInt(ebr.Part_start[:])
+    }
+
+    //LEER EL SUPERBLOQUE
+    archivo.Seek(int64(posInicio), 0)
+    binary.Read(archivo, binary.LittleEndian, &sblock)
+
+    //Definir posiciones
+    posInodos = ToInt(sblock.S_inode_start[:])
+    posBloques = ToInt(sblock.S_block_start[:])
+    archivo.Close()
+
+    // Escribir el DOT
+    codigo = "digraph G { \n rankdir = LR; node[shape = plaintext];\n"
+
+    // Leer el inodo raíz. Es el número 0.
+    inodo_leido := 0
+    padre := ""
+    leer_inodo(disc_uso.ruta, posInodos, posBloques, inodo_leido, &codigo, padre)
+    codigo += "}"
+
+    //GENERAR EL DOT
+    salida, err := os.Create("grafo.dot")
+    defer salida.Close()
+    _, err = salida.WriteString(codigo + "\n")
+
+    //EXTRAER EL TIPO DE FORMATO
+    pos := strings.LastIndex(*ruta, ".")
+    extension := (*ruta)[pos+1:]
+
+    //CREAR EL COMANDO DOT
+    comando = "dot -T" + extension + " grafo.dot -o '" + *ruta + "'"
+
+    //GENERAR EL GRAFO
+    cmd := exec.Command("sh", "-c", comando)
+    err = cmd.Run()
+    if err != nil {
     
+    }
+    fmt.Println("MENSAJE: Reporte DISKS creado correctamente.")
+}
+
+func leer_inodo(ruta string, posInodos int, posBloques int, no_inodo int, codigo *string, padre string){
+    // VARIABLES
+    var linodo Inodo        // Para leer inodos
+    var posLectura int      // Usado para las posiciones de lectura
+
+    // ABRIR ARCHIVO
+    archivo, err := os.OpenFile(ruta, os.O_RDWR, 0644)
+    if err != nil {
+        fmt.Println("Error al abrir archivo: %s", err)
+    }
+
+    // DECLARAR EL INODO
+    posLectura = posInodos + (int(binary.Size(linodo)) * no_inodo)
+    archivo.Seek(int64(posLectura), 0)
+    binary.Read(archivo, binary.LittleEndian, &linodo)
+    
+    if linodo.I_type[0] != '0' {
+        if linodo.I_type[0] != '1' {
+            fmt.Println("ERROR: No se encontró el inodo raiz.")
+            return
+        }
+    }
+
+    nombre := "INODO"
+    nombre += strconv.Itoa(no_inodo)
+    *codigo += nombre
+    nombre = "Inodo "
+    nombre += strconv.Itoa(no_inodo)
+    *codigo += "[ label = <<TABLE BORDER='2' CELLBORDER='0' CELLSPACING='5' BGCOLOR='#0f4c5c'>\n"
+    *codigo += "<TR><TD colspan ='2' ><b>"
+    *codigo += nombre
+    *codigo += "</b></TD></TR>\n"
+
+    *codigo += "<TR>"
+    *codigo += "<TD Align='left'>"
+    *codigo += "ID del Propietario:"
+    *codigo += "</TD>"
+    *codigo += "<TD>"
+    *codigo += string(linodo.I_uid[:])
+    *codigo += "</TD>"
+    *codigo += "</TR>"
+
+    *codigo += "<TR>"
+    *codigo += "<TD Align='left'>"
+    *codigo += "ID del Grupo:"
+    *codigo += "</TD>"
+    *codigo += "<TD>"
+    *codigo += string(linodo.I_gid[:])
+    *codigo += "</TD>"
+    *codigo += "</TR>"
+
+    *codigo += "<TR>"
+    *codigo += "<TD Align='left'>"
+    *codigo += "Tamaño del archivo:"
+    *codigo += "</TD>"
+    *codigo += "<TD>"
+    *codigo += ToString(linodo.I_s[:])
+    *codigo += "</TD>"
+    *codigo += "</TR>"
+
+    *codigo += "<TR>"
+    *codigo += "<TD Align='left'>"
+    *codigo += "Ultima lectura:"
+    *codigo += "</TD>"
+    *codigo += "<TD>"
+    *codigo += ToString(linodo.I_atime[:])
+    *codigo += "</TD>"
+    *codigo += "</TR>"
+
+    *codigo += "<TR>"
+    *codigo += "<TD Align='left'>"
+    *codigo += "Fecha de Creación:"
+    *codigo += "</TD>"
+    *codigo += "<TD>"
+    *codigo += ToString(linodo.I_ctime[:])
+    *codigo += "</TD>"
+    *codigo += "</TR>"
+
+    *codigo += "<TR>"
+    *codigo += "<TD Align='left'>"
+    *codigo += "Ultima modificación:"
+    *codigo += "</TD>"
+    *codigo += "<TD>"
+    *codigo += ToString(linodo.I_mtime[:])
+    *codigo += "</TD>"
+    *codigo += "</TR>"
+
+    recorrer := ToStringArray(linodo.I_block[:])
+    for j := 0; j < 16; j++ {
+        *codigo += "<TR>"
+        *codigo += "<TD Align='left'>"
+        nombre := "Bloque " + strconv.Itoa(j) + ":"
+        *codigo += nombre
+        *codigo += "</TD>"
+        *codigo += "<TD PORT='P" + strconv.Itoa(j) + "'>"
+        *codigo += strconv.Itoa(recorrer[j])
+        *codigo += "</TD>"
+        *codigo += "</TR>"
+    }
+
+    *codigo += "<TR>"
+    *codigo += "<TD Align='left'>"
+    *codigo += "Tipo de Inodo:"
+    *codigo += "</TD>"
+    *codigo += "<TD>"
+    *codigo += string(linodo.I_type[:])
+    *codigo += "</TD>"
+    *codigo += "</TR>"
+
+    *codigo += "<TR>"
+    *codigo += "<TD Align='left'>"
+    *codigo += "Permisos:"
+    *codigo += "</TD>"
+    *codigo += "<TD>"
+    *codigo += string(linodo.I_perm[:])
+    *codigo += "</TD>"
+    *codigo += "</TR>"
+
+    *codigo += "</TABLE>>];\n"
+
+    // CONECTAR CON EL PADRE
+    nombre = "INODO" + strconv.Itoa(no_inodo)
+    if padre != "" {
+        *codigo += padre + "->" + nombre + "[minlen = 2];\n"
+    }
+
+    // RECORRER LA LISTA DE BLOQUES DEL INODO
+    for i, direccion := range recorrer {
+        if direccion == -1 {
+            continue
+        }
+
+        nombre_nodo := nombre + ":P" + strconv.Itoa(i)
+        if linodo.I_type[0] == '0' {
+            leer_carpeta(ruta, posInodos, posBloques, direccion, codigo, nombre_nodo)
+        } else {
+            leer_archivo(ruta, posInodos, posBloques, direccion, codigo, nombre_nodo)
+        }
+
+    }
+    archivo.Close()
+}
+
+func leer_carpeta(ruta string, posInodos int, posBloques int, no_bloque int, codigo *string, padre string){
+    //VARIABLES
+    var lcarpeta Bcarpetas //Para leer bloques de carpetas
+    var posLectura int //Usado para las posiciones de lectura
+
+    //ABRIR ARCHIVO
+    archivo, err := os.OpenFile(ruta, os.O_RDWR, 0644)
+    if err != nil {
+    
+    }
+
+    //DECLARAR BLOQUE DE CARPETAS
+    posLectura = posBloques + (64 * no_bloque)
+    archivo.Seek(int64(posLectura), 0)
+    binary.Read(archivo, binary.LittleEndian, &lcarpeta)
+    
+    nombre := "BLOQUE"
+    nombre += strconv.Itoa(no_bloque)
+    *codigo += nombre
+
+    nombre = "Bloque Carpetas "
+    nombre += strconv.Itoa(no_bloque)
+    *codigo += "[ label = <<TABLE BORDER='2' CELLBORDER='0' CELLSPACING='5' BGCOLOR='#8b8c89'>\n"
+    *codigo += "<TR><TD colspan ='2' ><b>"
+    *codigo += nombre
+    *codigo += "</b></TD></TR>\n"
+    *codigo += "<TR><TD><b>Nombre</b></TD><TD><b>Inodo</b></TD></TR>"
+
+    for j := 0; j < 4; j++ {
+        temp := lcarpeta.B_content[j]
+        *codigo += "<TR>"
+        *codigo += "<TD>"
+        *codigo += ToString(temp.B_name[:])
+        *codigo += "</TD>"
+        *codigo += "<TD PORT='P"
+        *codigo += strconv.Itoa(j)
+        *codigo += "'>"
+        *codigo += ToString(temp.B_inodo[:])
+        *codigo += "</TD>"
+        *codigo += "</TR>"
+    }
+    
+    *codigo += "</TABLE>>];\n"
+    
+    //CONECTAR CON EL PADRE
+    nombre = "BLOQUE"
+    nombre += strconv.Itoa(no_bloque)
+    
+    *codigo += padre
+    *codigo += "->"
+    *codigo += nombre
+    *codigo += "[minlen = 2];\n"
+
+    // RECORRER LA LISTA DE CARPETAS DEL BLOQUE
+    for i := 0; i < 4; i++ {
+        direccion := ToInt(lcarpeta.B_content[i].B_inodo[:])
+        carpeta := string(lcarpeta.B_content[i].B_name[:])
+
+        if direccion == -1 || carpeta == "." || carpeta == ".." {
+            continue
+        }
+
+        nombreNodo := nombre + ":P" + strconv.Itoa(i)
+        leer_inodo(ruta, posInodos, posBloques, direccion, codigo, nombreNodo)
+    }
+    archivo.Close()
+}
+func leer_archivo(ruta string, posInodos int, posBloques int, no_bloque int, codigo *string, padre string){
+    //VARIABLES
+    var larchivo Barchivos           // Para leer bloques de archivos
+    var posLectura int               // Usado para las posiciones de lectura
+    
+    // ABRIR ARCHIVO
+    archivo, err := os.OpenFile(ruta, os.O_RDWR, 0666)
+    if err != nil {
+
+    }
+
+    // DECLARAR BLOQUE DE ARCHIVOS
+    posLectura = posBloques + (64 * no_bloque)
+    archivo.Seek(int64(posLectura), 0)
+    binary.Read(archivo, binary.LittleEndian, &larchivo)
+    
+    nombre := "BLOQUE"
+    nombre += strconv.Itoa(no_bloque)
+    *codigo += nombre
+
+    nombre = "Bloque Archivos "
+    nombre += strconv.Itoa(no_bloque)
+    *codigo += "[ label = <<TABLE BORDER='2' CELLBORDER='0' CELLSPACING='5' BGCOLOR='#fb8b24'>\n"
+    *codigo += "<TR><TD><b>"
+    *codigo += nombre
+    *codigo += "</b></TD></TR>\n"
+
+    *codigo += "<TR>"
+    *codigo += "<TD>"
+    *codigo += string(larchivo.B_content[:])
+    *codigo += "</TD>"
+    *codigo += "</TR>"
+    *codigo += "</TABLE>>];\n"
+
+    // CONECTAR CON EL PADRE
+    nombre = "BLOQUE"
+    nombre += strconv.Itoa(no_bloque)
+
+    *codigo += padre
+    *codigo += "->"
+    *codigo += nombre
+    *codigo += "[minlen = 2];"
+    *codigo += "\n"
+
+    archivo.Close()
 }
 
 func Sb(discos *[]Disco, posDisco int, posParticion int, ruta *string){
@@ -855,5 +1180,149 @@ func Sb(discos *[]Disco, posDisco int, posParticion int, ruta *string){
 }
 
 func File(discos *[]Disco, posDisco int, posParticion int, ruta *string, ruta_contenido *string){
+    //VARIABLES
+    disc_uso := (*discos)[posDisco] //Disco en uso
+    part_uso := disc_uso.particiones[posParticion] //Particion Montada
+    posInicio := 0 //Posicion donde inicia la particion
+    sblock := Sbloque{} //Para leer el superbloque
+    linodo := Inodo{} //Para leer los inodos
+    larchivo := Barchivos{} //Para leer bloques de archivos
+    lcarpeta := Bcarpetas{} //Para leer bloques de carpeta
+    posLectura := 0 //Usado para las posiciones de lectura
+    inodo_leido := 0 //Numero de inodo leido actualmente
+    contenido := "" //Para almacenar el contenido del archivo
+
+    //VERIFICAR QUE EL ARCHIVO EXISTE
+    archivo, err := os.OpenFile(disc_uso.ruta, os.O_RDWR, 0644) //Para leer el archivo
+    if err != nil {
+        fmt.Println("ERROR: No se encontro el disco.")
+        return
+    }
+    defer archivo.Close()
+
+    //VERIFICAR QUE VENGA LA RUTA DEL ARCHIVO A LEER
+    if *ruta_contenido == "" {
+        fmt.Println("ERROR: Se necesita la ruta del archivo a leer.")
+        return
+    }
+
+    //DETERMINAR LA POSICION DE INICIO PARA LEER LA PARTICION
+    if part_uso.posMBR != -1 {
+		var mbr MBR
+        archivo.Seek(0, 0)
+        binary.Read(archivo, binary.LittleEndian, &mbr)
+        posInicio = ToInt(mbr.Mbr_partition[part_uso.posMBR].Part_start[:])
+    } else {
+		var ebr EBR
+        archivo.Seek(int64(part_uso.posEBR), 0)
+        binary.Read(archivo, binary.LittleEndian, &ebr)
+        posInicio = ToInt(ebr.Part_start[:])
+    }
+
+    //LEER EL SUPERBLOQUE
+    archivo.Seek(int64(posInicio), 0)
+    binary.Read(archivo, binary.LittleEndian, &sblock)
+
+    //LEER EL INODO RAIZ
+    posLectura = ToInt(sblock.S_inode_start[:])
+    inodo_leido = 0
+    archivo.Seek(int64(posLectura), 0)
+    binary.Read(archivo, binary.LittleEndian, &linodo)
+    
+    if linodo.I_type[0] != '0' {
+        if linodo.I_type[0] != '1' {
+            fmt.Println("ERROR: No se encontró el inodo raiz.")
+            return
+        }
+    }
+
+    // SEPARAR LOS NOMBRES QUE VENGAN EN LA RUTA
+    path_cont := strings.Split(*ruta_contenido, "/")
+
+    // BUSCAR EL ARCHIVO
+    posicion := 1
+    continuar := true
+    if *ruta_contenido == "/" {
+        continuar = false
+    } else if path_cont[0] != "" {
+        continuar = false
+    }
+
+    for continuar {
+        inodo_temporal := -1
+
+        recorrer := ToStringArray(linodo.I_block[:])
+
+        //Buscar si existe la carpeta
+        for i := 0; i < 16; i++ {
+            if inodo_temporal != -1 {
+                break
+            }
+
+            if recorrer[i] == -1 {
+                continue
+            }
+
+            posLectura = ToInt(sblock.S_block_start[:]) + int(binary.Size(Bcarpetas{})) * recorrer[i]
+            archivo.Seek(int64(posLectura), 0)
+            binary.Read(archivo, binary.LittleEndian, &lcarpeta)
+
+            for j := 0; j < 4; j++ {
+                carpeta := string(lcarpeta.B_content[j].B_name[:])
+
+                if carpeta == path_cont[posicion] {
+                    copy(linodo.I_atime[:], []byte(time.Now().String()))
+                    posLectura = ToInt(sblock.S_inode_start[:]) + int(binary.Size(Inodo{})) * int(inodo_leido)
+                    archivo.Seek(int64(posLectura), 0)
+                    binary.Write(archivo, binary.LittleEndian, &linodo)
+                    
+                    inodo_temporal = ToInt(lcarpeta.B_content[j].B_inodo[:])
+                    inodo_leido = inodo_temporal
+                    posicion += 1
+                    posLectura = ToInt(sblock.S_inode_start[:]) + int(binary.Size(Inodo{})) * int(inodo_temporal)
+                    archivo.Seek(int64(posLectura), 0)
+                    binary.Read(archivo, binary.LittleEndian, &linodo)
+                    break
+                }
+            }
+        }
+
+        if inodo_temporal == -1 {
+            continuar = false
+            fmt.Println("ERROR: La ruta ingresada del contenido no existe.")
+            inodo_leido = -1
+        } else if posicion == len(path_cont) && linodo.I_type[0] == '1' {
+            continuar = false
+        } else if posicion == len(path_cont) && linodo.I_type[0] == '0' {
+            continuar = false
+            fmt.Println("ERROR: No se encontró el archivo con el contenido a leer.")
+            inodo_leido = -1
+        }
+    }
+
+    if inodo_leido == -1 {
+        return
+    }
+
+    //Leer el contenido del archivo
+    recorrer := ToStringArray(linodo.I_block[:])
+    for i := 0; i < 16; i++ {
+        if recorrer[i] == -1 {
+            continue
+        }
+    
+        posLectura := ToInt(sblock.S_block_start[:]) + (recorrer[i] * int(binary.Size(Barchivos{})))
+        archivo.Seek(int64(posLectura), 0)
+        binary.Read(archivo, binary.LittleEndian, &larchivo)
+
+        temp := string(larchivo.B_content[:])
+        contenido += temp
+    }
+
+    //GENERAR EL DOT
+    salida, err := os.Create(*ruta)
+    defer salida.Close()
+    _, err = salida.WriteString(contenido + "\n")
+
 
 }
