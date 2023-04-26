@@ -80,19 +80,27 @@ func Rep(parametros *[]string, discos *[]Disco) {
     //CONVERTIR LA LETRA A BYTE
     posDisco = 65 - int(byte(diskName[0]))
 
-    //BUSCAR LA PARTICION DENTRO DEL DISCO MONTADO
-    tempD := (*discos)[posDisco]
-    for i, temp := range tempD.particiones {
-        if temp.id == id {
-            posParticion = i
-            break
-        }
+	//EXTRAER LA POSICION DE LA PARTICION EN EL DISCO
+	posParticion, err := strconv.Atoi(string(id[2]))
+    posParticion -= 1
+    if posParticion < 0{
+        posParticion = 0
     }
+    if err != nil {
+	
+	}
 
-    if posParticion == -1 {
-        fmt.Println("ERROR: No existe una partición montada con ese ID.")
+    //BUSCAR LA PARTICION DENTRO DEL DISCO MONTADO
+	if posDisco > len(*discos){
+		fmt.Println("ERROR: El disco no se encuentra montado.")
         return
-    }
+	}
+    tempD := (*discos)[posDisco]
+
+	if posParticion > len(tempD.particiones){
+		fmt.Println("ERROR: La partición no se encuentra montado.")
+        return
+	}
 
     // CREAR DIRECTORIOS EN CASO NO EXISTAN
     if err := os.MkdirAll(filepath.Dir(ruta), os.ModePerm); err != nil {
@@ -142,6 +150,7 @@ func Mbr(discos *[]Disco, posDisco int, ruta *string){
     defer archivo.Close()
 
     //LEER EL MBR
+    archivo.Seek(0,0)
     binary.Read(archivo, binary.LittleEndian, &mbr)
 
     //ESCRIBIR EL DOT
@@ -182,7 +191,7 @@ func Mbr(discos *[]Disco, posDisco int, ruta *string){
 
     //Particiones
     for i := 0; i < 4; i++ {
-        if len(strings.Trim(string(mbr.Mbr_partition[i].Part_name[:]), "\x00")) == 0 {
+        if len(strings.Trim(string(mbr.Mbr_partition[i].Part_name[:]), "\x00")) != 0 {
             if mbr.Mbr_partition[i].Part_type[0] == 'p' {
                 codigo += "<TR>"
                 codigo += "<TD BGCOLOR='#e67e22' WIDTH='300'>PARTICION</TD>"
@@ -329,7 +338,7 @@ func Mbr(discos *[]Disco, posDisco int, ruta *string){
                     codigo += ToString(ebr.Part_next[:])
                     codigo += "</TD>"
                     codigo += "</TR>"
-
+                    
                     if ToInt(ebr.Part_next[:]) == -1 {
                         continuar = false
                     } else {
@@ -387,6 +396,7 @@ func Disk(discos *[]Disco, posDisco int, ruta *string){
     defer archivo.Close()
 
     //LEER EL MBR
+    archivo.Seek(0, 0)
     binary.Read(archivo, binary.LittleEndian, &mbr)
 
     // BUSCAR LA EXTENDIDA
@@ -407,7 +417,7 @@ func Disk(discos *[]Disco, posDisco int, ruta *string){
 
     // Crear una lista de las particiones
     for i := 0; i < 4; i++ {
-        if len(strings.Trim(string(mbr.Mbr_partition[i].Part_name[:]), "\x00")) == 0 {
+        if len(strings.Trim(string(mbr.Mbr_partition[i].Part_name[:]), "\x00")) != 0 {
             var temp Position
             temp.inicio = ToInt(mbr.Mbr_partition[i].Part_start[:])
             temp.fin = ToInt(mbr.Mbr_partition[i].Part_start[:]) + ToInt(mbr.Mbr_partition[i].Part_s[:]) - 1
@@ -435,15 +445,6 @@ func Disk(discos *[]Disco, posDisco int, ruta *string){
             free := 0
         
             if i == 0 && i != (len(posiciones)-1) {
-                free = x.inicio - int(binary.Size(MBR{})) + 1
-        
-                if free > 0 {
-                    codigo += "<TD ROWSPAN='3' WIDTH='100' BGCOLOR='#3FA796'>LIBRE<BR/>"
-                    porcentaje = int(math.Round(float64(free) / size * 100))
-                    codigo += strconv.Itoa(porcentaje)
-                    codigo += "% del disco"
-                    codigo += "</TD>"
-                }
         
                 if x.tipo == 'p' {
                     codigo += "<TD ROWSPAN='3' BGCOLOR='#355764' WIDTH='100'>PRIMARIA<BR/>"
@@ -730,10 +731,12 @@ func Tree(discos *[]Disco, posDisco int, posParticion int, ruta *string){
     if err != nil {
     
     }
-    fmt.Println("MENSAJE: Reporte DISKS creado correctamente.")
+    fmt.Println("MENSAJE: Reporte Tree creado correctamente.")
 }
 
 func leer_inodo(ruta string, posInodos int, posBloques int, no_inodo int, codigo *string, padre string){
+    fmt.Println("Inodo")
+    fmt.Println(no_inodo)
     // VARIABLES
     var linodo Inodo        // Para leer inodos
     var posLectura int      // Usado para las posiciones de lectura
@@ -771,7 +774,7 @@ func leer_inodo(ruta string, posInodos int, posBloques int, no_inodo int, codigo
     *codigo += "ID del Propietario:"
     *codigo += "</TD>"
     *codigo += "<TD>"
-    *codigo += string(linodo.I_uid[:])
+    *codigo += ToString(linodo.I_uid[:])
     *codigo += "</TD>"
     *codigo += "</TR>"
 
@@ -780,7 +783,7 @@ func leer_inodo(ruta string, posInodos int, posBloques int, no_inodo int, codigo
     *codigo += "ID del Grupo:"
     *codigo += "</TD>"
     *codigo += "<TD>"
-    *codigo += string(linodo.I_gid[:])
+    *codigo += ToString(linodo.I_gid[:])
     *codigo += "</TD>"
     *codigo += "</TR>"
 
@@ -821,6 +824,7 @@ func leer_inodo(ruta string, posInodos int, posBloques int, no_inodo int, codigo
     *codigo += "</TR>"
 
     recorrer := ToStringArray(linodo.I_block[:])
+    fmt.Println(recorrer)
     for j := 0; j < 16; j++ {
         *codigo += "<TR>"
         *codigo += "<TD Align='left'>"
@@ -838,7 +842,7 @@ func leer_inodo(ruta string, posInodos int, posBloques int, no_inodo int, codigo
     *codigo += "Tipo de Inodo:"
     *codigo += "</TD>"
     *codigo += "<TD>"
-    *codigo += string(linodo.I_type[:])
+    *codigo += ToString(linodo.I_type[:])
     *codigo += "</TD>"
     *codigo += "</TR>"
 
@@ -847,7 +851,7 @@ func leer_inodo(ruta string, posInodos int, posBloques int, no_inodo int, codigo
     *codigo += "Permisos:"
     *codigo += "</TD>"
     *codigo += "<TD>"
-    *codigo += string(linodo.I_perm[:])
+    *codigo += ToString(linodo.I_perm[:])
     *codigo += "</TD>"
     *codigo += "</TR>"
 
@@ -877,6 +881,8 @@ func leer_inodo(ruta string, posInodos int, posBloques int, no_inodo int, codigo
 }
 
 func leer_carpeta(ruta string, posInodos int, posBloques int, no_bloque int, codigo *string, padre string){
+    fmt.Println("Carpeta")
+    fmt.Println(no_bloque)
     //VARIABLES
     var lcarpeta Bcarpetas //Para leer bloques de carpetas
     var posLectura int //Usado para las posiciones de lectura
@@ -929,10 +935,10 @@ func leer_carpeta(ruta string, posInodos int, posBloques int, no_bloque int, cod
     *codigo += nombre
     *codigo += "[minlen = 2];\n"
 
-    // RECORRER LA LISTA DE CARPETAS DEL BLOQUE
+    // RECORRER LA LISTA DE CARPETAS DEL BLOQUE    
     for i := 0; i < 4; i++ {
         direccion := ToInt(lcarpeta.B_content[i].B_inodo[:])
-        carpeta := string(lcarpeta.B_content[i].B_name[:])
+        carpeta := ToString(lcarpeta.B_content[i].B_name[:])
 
         if direccion == -1 || carpeta == "." || carpeta == ".." {
             continue
@@ -944,6 +950,8 @@ func leer_carpeta(ruta string, posInodos int, posBloques int, no_bloque int, cod
     archivo.Close()
 }
 func leer_archivo(ruta string, posInodos int, posBloques int, no_bloque int, codigo *string, padre string){
+    fmt.Println("Archivo")
+    fmt.Println(no_bloque)
     //VARIABLES
     var larchivo Barchivos           // Para leer bloques de archivos
     var posLectura int               // Usado para las posiciones de lectura
@@ -972,7 +980,7 @@ func leer_archivo(ruta string, posInodos int, posBloques int, no_bloque int, cod
 
     *codigo += "<TR>"
     *codigo += "<TD>"
-    *codigo += string(larchivo.B_content[:])
+    *codigo += ToString(larchivo.B_content[:])
     *codigo += "</TD>"
     *codigo += "</TR>"
     *codigo += "</TABLE>>];\n"
@@ -1176,7 +1184,7 @@ func Sb(discos *[]Disco, posDisco int, posParticion int, ruta *string){
     if err != nil {
     
     }
-    fmt.Println("MENSAJE: Reporte DISKS creado correctamente.")
+    fmt.Println("MENSAJE: Reporte Super Bloque creado correctamente.")
 }
 
 func File(discos *[]Disco, posDisco int, posParticion int, ruta *string, ruta_contenido *string){
@@ -1263,12 +1271,12 @@ func File(discos *[]Disco, posDisco int, posParticion int, ruta *string, ruta_co
                 continue
             }
 
-            posLectura = ToInt(sblock.S_block_start[:]) + int(binary.Size(Bcarpetas{})) * recorrer[i]
+            posLectura = ToInt(sblock.S_block_start[:]) + (int(binary.Size(Bcarpetas{})) * recorrer[i])
             archivo.Seek(int64(posLectura), 0)
             binary.Read(archivo, binary.LittleEndian, &lcarpeta)
 
             for j := 0; j < 4; j++ {
-                carpeta := string(lcarpeta.B_content[j].B_name[:])
+                carpeta := ToString(lcarpeta.B_content[j].B_name[:])
 
                 if carpeta == path_cont[posicion] {
                     copy(linodo.I_atime[:], []byte(time.Now().String()))
@@ -1315,7 +1323,7 @@ func File(discos *[]Disco, posDisco int, posParticion int, ruta *string, ruta_co
         archivo.Seek(int64(posLectura), 0)
         binary.Read(archivo, binary.LittleEndian, &larchivo)
 
-        temp := string(larchivo.B_content[:])
+        temp := ToString(larchivo.B_content[:])
         contenido += temp
     }
 
@@ -1324,5 +1332,6 @@ func File(discos *[]Disco, posDisco int, posParticion int, ruta *string, ruta_co
     defer salida.Close()
     _, err = salida.WriteString(contenido + "\n")
 
+    fmt.Println("MENSAJE: Reporte file creado correctamente.")
 
 }

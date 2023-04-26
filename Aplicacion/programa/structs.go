@@ -157,7 +157,7 @@ type Inodo struct {
     I_atime     [30]byte
     I_ctime     [30]byte
     I_mtime     [30]byte
-    I_block     [80]byte
+    I_block     [85]byte
     I_type      [1]byte 
     I_perm      [3]byte
 }
@@ -217,14 +217,14 @@ func ToStringArray(sliceTemp []byte) []int {
             break
         }
         j := bytes.IndexByte(sliceTemp, '!')
-        if j == -1 {
+        if j == -1 || j >= len(sliceTemp) {
             j = len(sliceTemp)
         }
         temp, err := strconv.Atoi(string(sliceTemp[:j]))
         if err != nil {
             fmt.Println("Ocurrio un error al convertir")
         }
-        salida[i] = temp
+        salida = append(salida, temp)
         sliceTemp = sliceTemp[j+1:]
     }
 

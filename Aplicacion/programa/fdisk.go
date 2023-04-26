@@ -176,7 +176,7 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
 	//COLOCAR EL PUNTERO DE LECTURA EN LA CABECERA Y LEER MBR
 	archivo.Seek(0, 0)
 	binary.Read(archivo, binary.LittleEndian, &mbr)
-
+    
     //=============== PARTICIONES LÓGICAS ===============
     if *tipo == 'l' {
         //VARIABLES
@@ -365,20 +365,22 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
             archivo.Seek(int64(espacios[posEspacio].inicioEBR), 0)
             binary.Read(archivo, binary.LittleEndian, &ebr)
             copy(ebr.Part_next[:], strconv.Itoa(posEbr))
+            fmt.Println("Nuevo")
+            fmt.Println(ToString(ebr.Part_name[:]))
+            fmt.Println(ToString(ebr.Part_next[:]))
             archivo.Seek(int64(espacios[posEspacio].inicioEBR), 0)
             binary.Write(archivo, binary.LittleEndian, &ebr)
-            
-            fmt.Println(posEbr)
-            fmt.Println(espacios[posEspacio].inicioEBR)
+         
             //Crear nueva particion (EBR)
-            ebr.Part_fit[0] = *fit
-            copy(ebr.Part_name[:], []byte(*nombre))
-            ebr.Part_status[0] = '0'
-            copy(ebr.Part_s[:], strconv.Itoa(*tamaño))
-            copy(ebr.Part_start[:], strconv.Itoa(posEbr + int(binary.Size(EBR{}))))
-            copy(ebr.Part_next[:], strconv.Itoa(-1))
+            var nebr EBR
+            nebr.Part_fit[0] = *fit
+            copy(nebr.Part_name[:], []byte(*nombre))
+            nebr.Part_status[0] = '0'
+            copy(nebr.Part_s[:], strconv.Itoa(*tamaño))
+            copy(nebr.Part_start[:], strconv.Itoa(posEbr + int(binary.Size(EBR{}))))
+            copy(nebr.Part_next[:], []byte(strconv.Itoa(-1)))
             archivo.Seek(int64(posEbr), 0)
-            binary.Write(archivo, binary.LittleEndian, &ebr)
+            binary.Write(archivo, binary.LittleEndian, &nebr)
             fmt.Println("MENSAJE: Particion lógica creada correctamente.")
         }
     }
