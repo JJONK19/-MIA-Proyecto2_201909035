@@ -1,0 +1,68 @@
+<div class="container">
+    <div class="row">
+        <div class="col-100">
+            <h1>Reportes</h1>
+        </div>
+    </div>
+    <!--Disk-->
+    <div class ="row">
+        <div class="col-100">
+            <h2>Disk</h2>
+            <br>
+            <div #disk></div>
+            <br>
+        </div>
+    </div>
+
+    <!--SB-->
+    <div class ="row">
+        <div class="col-100">
+            <h2>Super Bloque</h2>
+            <br>
+            <div #tree></div>
+            <br>
+        </div>
+    </div>
+
+    <!--Tree-->
+    <div class ="row">
+        <div class="col-100">
+            <h2>Tree</h2>
+            <br>
+            <div #sb></div>
+            <br>
+        </div>
+    </div>
+
+    <!--File-->
+    <div class="row">
+        <div class="col-100">
+          <h2>File</h2>
+          <form [formGroup]="form" (ngSubmit)="enviarCodigo()">
+            <div class="row">
+              <label for="ruta">Ruta del Archivo:</label>
+              <input class="campo" type="text" id="ruta" name="ruta" [(ngModel)]="ruta">
+            </div>
+            <div class="row">
+              <div class="col-100 flex j-end">
+                  <button [disabled]="form.invalid" type="submit">Buscar</button>
+              </div>
+            </div>
+          </form>  
+        </div>
+      </div>
+
+    <!--Consola-->
+    <div class="row">
+        <div class="col-100">
+            <div class="consol">
+                <span style="text-align: center;">========================================================== CONTENIDO DEL ARCHIVO ==========================================================</span>
+                <pre>{{salida}}</pre>
+            </div>
+        </div> 
+    </div>
+    <br>
+    <br>
+    <br>
+</div>
+

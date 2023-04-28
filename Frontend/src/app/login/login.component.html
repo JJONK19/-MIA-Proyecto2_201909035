@@ -1,0 +1,26 @@
+<div class="container">
+  <div class="row">
+    <div class="col-100">
+      <h1>Login</h1>
+      <form [formGroup]="form" (ngSubmit)="enviarCodigo()">
+        <div class="row">
+          <label for="particion">ID Particion:</label>
+          <input type="text" id="particion" name="particion" [(ngModel)]="particion">
+        </div>
+        <div class="row">
+          <label for="username">Username:</label>
+          <input type="text" id="username" name="username" [(ngModel)]="username">
+        </div>
+        <div class="row">
+          <label for="password">Contraseña:</label>
+          <input type="text" id="password" name="password" [(ngModel)]="password">
+        </div>
+        <div class="row">
+          <div class="col-100 flex j-end">
+              <button [disabled]="form.invalid" type="submit">Iniciar Sesión</button>
+          </div>
+        </div>
+      </form>  
+    </div>
+  </div>
+</div>

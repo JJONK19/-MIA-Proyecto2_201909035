@@ -1,0 +1,345 @@
+/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@100&family=Roboto+Mono:ital,wght@1,100&family=Updock&display=swap');
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.file-input {
+  display: none;
+}
+
+.btn-group button {
+  padding: 10px 24px; /* Some padding */
+  cursor: pointer; /* Pointer/hand icon */
+  float: left; /* Float the buttons side by side */
+  font-size: 0.8rem;
+  border: 2px solid #025b5e ;
+  border-radius:0px;
+  background-color: #008489;
+  color: white;
+}
+
+.btn-group:after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+.btn-group button:not(:last-child) {
+  border-right: none; /* Prevent double borders */
+}
+
+.btn-group button:hover {
+  background-color: #008489;
+}
+
+button {
+  font-size: 0.8rem;
+  padding: 0.5em 1em;
+  border: 1px solid #008489;
+  border-radius: 0.4em;
+  background-color: #008489;
+  color: white;
+  transition: all 400ms ease-in-out;
+}
+button.outline {
+  color: #008489;
+  background-color: white;
+}
+button:hover {
+  background-color: #025b5e;
+}
+button.outline:hover {
+  color: white;
+  background-color: #025b5e;
+}
+button.icon {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+button.icon img {
+  margin-right: 0.3rem;
+}
+
+.card {
+  padding: 1rem;
+  margin: 1rem;
+  box-shadow: 2px 2px 4px grey;
+}
+.card h1 {
+  border-bottom: 1px solid lightgray;
+  padding-bottom: 0.5rem;
+}
+.card p:nth-of-type(1) {
+  margin-top: 1rem;
+}
+
+table {
+  width: 100%;
+  margin-top: 1rem;
+}
+table th {
+  padding: 0.5rem 1rem;
+  background-color: #008489;
+  color: white;
+}
+table td {
+  padding: 0.5rem 1rem;
+  border: 1px solid #008489;
+}
+
+.container {
+  max-width: 1440px;
+  margin: 0 auto;
+  transition: 600ms opacity linear;
+}
+
+.row {
+  display: flex;
+  padding: 1rem;
+  padding-bottom: 0px;
+}
+@media (max-width: 720px) {
+  .row {
+    flex-direction: column;
+    padding: 1rem 0.5rem;
+  }
+}
+
+.col-100 {
+  width: 100%;
+  padding: 0.5rem 1rem;
+}
+.col-75 {
+  width: 75%;
+  padding: 0.5rem 1rem;
+}
+.col-66 {
+  width: 66.6666%;
+  padding: 0.5rem 1rem;
+}
+.col-50 {
+  width: 50%;
+  padding: 0.5rem 1rem;
+}
+.col-33 {
+  width: 33.3333%;
+  padding: 0.5rem 1rem;
+}
+.col-25 {
+  width: 25%;
+  padding: 0.5rem 1rem;
+}
+@media (max-width: 720px) {
+  .col-75, .col-66, .col-50, .col-33, .col-25 {
+    width: 100%;
+  }
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.j-start {
+  justify-content: flex-start;
+}
+
+.j-end {
+  justify-content: flex-end;
+}
+
+.j-center {
+  justify-content: center;
+}
+
+.j-between {
+  justify-content: space-between;
+}
+
+.j-around {
+  justify-content: space-around;
+}
+
+.a-start {
+  align-items: flex-start;
+}
+
+.a-end {
+  align-items: flex-end;
+}
+
+.a-center {
+  align-items: center;
+}
+
+.m-t {
+  margin-top: 1rem;
+}
+
+.m-b {
+  margin-bottom: 1rem;
+}
+
+.m-l {
+  margin-left: 1rem;
+}
+
+.m-r {
+  margin-right: 1rem;
+}
+
+.m-t-small {
+  margin-top: 0.5rem;
+}
+
+.m-b-small {
+  margin-bottom: 0.5rem;
+}
+
+.m-l-small {
+  margin-left: 0.5rem;
+}
+
+.m-r-small {
+  margin-right: 0.5rem;
+}
+
+.nav {
+  background-color:#008489;
+  height: 80px;
+  width: 100%;
+  padding: 0 1rem;
+  box-shadow: 2px 2px 4px lightgray;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+}
+.nav div {
+  margin-left: 0.5rem;
+  cursor: pointer;
+}
+.nav div.active {
+  color:white;
+}
+
+.campo{
+  width: 100%;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0.3rem;
+  padding: 0.5em 1em;
+  overflow: scroll;
+  font-size: 0.9rem;
+}
+
+form {
+  width: 100%;
+}
+form .row {
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+form .row textarea {
+  background: rgb(39,40,34);
+  border: 1px solid #67666e;
+  border-radius: 0.3rem;
+  font-size: 0.7rem;
+  padding: 0.5em 1em;
+  width: 100%;
+  height: 400px;
+  transition: 400ms all ease-in-out;
+  font-family: 'Roboto Mono', monospace;
+  color: white;
+}
+
+.consol{
+  width: 100%;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  background: white;
+  border: 1px solid #67666e;
+  border-radius: 0.3rem;
+  font-size: 0.7rem;
+  padding: 0.5em 1em;
+  width: 100%;
+  height: 200px;
+  transition: 400ms all ease-in-out;
+  font-family: 'Roboto Mono', monospace;
+  color:black;
+  overflow: scroll;
+}
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+}
+
+hr {
+  border-top: 3px dashed #008489;
+}
+
+form button[disabled] {
+  border: 1px solid grey;
+  background-color: grey;
+  cursor: not-allowed;
+}
+
+
+/* Generales */
+html {
+  font-size: 22px;
+}
+@media (max-width: 960px) {
+  html {
+    font-size: 20px;
+  }
+}
+@media (max-width: 720px) {
+  html {
+    font-size: 18px;
+  }
+}
+
+body {
+   font-family: 'Raleway', sans-serif;
+   overflow: scroll;
+  
+}
+
+h1 {
+  font-family: 'Updock', cursive;
+  font-size: 2rem;
+  color: #008489;
+}
+
+h2 {
+  font-family: 'Raleway', sans-serif;;
+  font-size: 1rem;
+  color: #008489;
+}
+
+b {
+  color: #008489;
+}
+
+
