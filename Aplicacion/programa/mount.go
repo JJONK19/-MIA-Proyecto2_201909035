@@ -3,14 +3,14 @@ package programa
 import(
 	"regexp"
 	"strings"
-	"fmt"
+	//"fmt"
 	"os"
 	"encoding/binary"
 	"path/filepath"
 	"strconv"
 	"time"
 )
-func Mount(parametros *[]string, discos *[]Disco){
+func Mount(parametros *[]string, discos *[]Disco, salidas *[6]string){
 	//VARIABLES
 	var paramFlag bool = true //Indica si se cumplen con los parametros del comando
 	var required bool = true //Indica si vienen los parametros obligatorios
@@ -44,7 +44,8 @@ func Mount(parametros *[]string, discos *[]Disco){
 		} else if tag == "name" {
 			nombre = value
 		} else {
-			fmt.Printf("ERROR: El parametro %s no es valido.\n", tag)
+			(*salidas)[0] += "ERROR: El parametro" + tag + "no es valido.\n"
+			//fmt.Printf("ERROR: El parametro %s no es valido.\n", tag)
 			paramFlag = false
 			break
 		}
@@ -60,14 +61,16 @@ func Mount(parametros *[]string, discos *[]Disco){
 	}
 	
 	if !required {
-		fmt.Println("ERROR: La instrucción mount carece de todos los parametros obligatorios.")
+		(*salidas)[0] += "ERROR: La instrucción mount carece de todos los parametros obligatorios.\n"
+		//fmt.Println("ERROR: La instrucción mount carece de todos los parametros obligatorios.")
 		return
 	}
 
 	//VERIFICAR QUE EL ARCHIVO EXISTA
 	archivo, err := os.OpenFile(ruta, os.O_RDONLY, 0644)
 	if err != nil {
-		fmt.Println("ERROR: El disco no existe.")
+		(*salidas)[0] += "ERROR: El disco no existe.\n"
+		//fmt.Println("ERROR: El disco no existe.")
 		return
 	}
 	defer archivo.Close()
@@ -104,7 +107,8 @@ func Mount(parametros *[]string, discos *[]Disco){
 	
 		// Buscar en la extendida
 		if posEBR == -1 {
-			fmt.Println("ERROR: La partición no existe.")
+			(*salidas)[0] += "ERROR: La partición no existe.\n"
+			//fmt.Println("ERROR: La partición no existe.")
 			return
 		}
 	
@@ -134,7 +138,8 @@ func Mount(parametros *[]string, discos *[]Disco){
 		}
 	
 		if !existe {
-			fmt.Println("ERROR: La partición no existe.")
+			(*salidas)[0] += "ERROR: La partición no existe.\n"
+			//fmt.Println("ERROR: La partición no existe.")
 			archivo.Close()
 			return
 		}
@@ -183,7 +188,8 @@ func Mount(parametros *[]string, discos *[]Disco){
 			temp := &(*discos)[posDisco]
 			for _, t := range temp.particiones {
 				if t.nombre == nombre {
-					fmt.Printf("ERROR: La partición %s se encuentra montada.\n", nombre)
+					(*salidas)[0] += "ERROR: La partición %s se encuentra montada.\n"
+					//fmt.Printf("ERROR: La partición %s se encuentra montada.\n", nombre)
 					return
 				}
 			}
@@ -239,8 +245,9 @@ func Mount(parametros *[]string, discos *[]Disco){
 			archivo.Seek(int64(ToInt(mbr.Mbr_partition[posMBR].Part_start[:])), 0)
 			binary.Write(archivo, binary.LittleEndian, &bloque)
 		}
-	
-		fmt.Println("MENSAJE: Particion montada correctamente.")
+		
+		(*salidas)[0] += "MENSAJE: Particion montada correctamente.\n"
+		//fmt.Println("MENSAJE: Particion montada correctamente.")
 	} else {
 		//Cambiar el estado de la particion en el MBR
 		archivo.Seek(int64(posLogica), 0)
@@ -262,10 +269,12 @@ func Mount(parametros *[]string, discos *[]Disco){
 			archivo.Seek(int64(ToInt(ebr.Part_s[:])), 0)
 			binary.Write(archivo, binary.LittleEndian, &bloque)
 		}
-		fmt.Println("MENSAJE: Particion montada correctamente.")
+		(*salidas)[0] += "MENSAJE: Particion montada correctamente.\n"
+		//fmt.Println("MENSAJE: Particion montada correctamente.")
 	}
 
 	//Mostrar el listado de particiones montadas
+	/*
 	fmt.Println()
     fmt.Println("LISTADO DE PARTICIONES MONTADAS")
     fmt.Println()
@@ -289,5 +298,6 @@ func Mount(parametros *[]string, discos *[]Disco){
             c_parusadas += 1
         }
     }
+	*/
 
 }

@@ -38,26 +38,29 @@ export class LoginComponent implements OnInit {
     this.password = this.form.controls["password"].value; 
     //PENDIENTE HACER LA REQUEST
     var objeto = {
-      entrada: "",
+      particion: this.particion,
+      username: this.username,
+      password: this.password
     }
-    /*
-    this.analizarService.ejecutar(objeto).subscribe((res:any)=>{
+    
+    this.analizarService.ejecutarLogin(objeto).subscribe((res:any)=>{
       console.log(res)
       //ACA SE CAMBIA PARA ALMACENAR VARIABLES GLOBALES Y COSAS DE LA SALIDA
-      
-      this.analizarService.setErrores(res.errores.lista);
-      this.analizarService.setSimbolos(res.simbolos.lista);
-      this.analizarService.setMetodos(res.metodos.lista);
-      this.analizarService.setDOT(res.ast);
+      if(res.Login == "0"){
+        console.log("No se pudo iniciar sesion.")
+      }else{
+        this.analizarService.setParticion(this.particion);
+        this.analizarService.setDisk(res.Disk)
+        this.analizarService.setSB(res.Sb)
+        this.analizarService.setTree(res.Tree)
+
+        //Abrir la ventana de los reportes
+        this.router.navigate(['/reportes']);
+      }
       
     }, err=>{
       console.log(err)
     });
-    */
-
-    //ABRIR LA VENTANA DE LOS REPORTES
-    //*Añador un mensaje de credenciales erroneas
-    this.router.navigate(['/reportes']);
   }
 
 }

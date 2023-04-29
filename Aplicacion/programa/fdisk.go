@@ -3,14 +3,14 @@ package programa
 import (
 	"sort"
 	"encoding/binary"
-	"fmt"
+	//"fmt"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
-func Fdisk(parametros *[]string) {
+func Fdisk(parametros *[]string, salidas *[6]string) {
     //VARIABLES
     paramFlag := true 			//Indica si se cumplen con los parametros del comando
     required := true  			//Indica si vienen los parametros obligatorios
@@ -41,7 +41,8 @@ func Fdisk(parametros *[]string) {
             var err error
             tamaño, err = strconv.Atoi(value)
             if err != nil {
-                fmt.Println("ERROR: El tamaño debe de ser un valor númerico.")
+                (*salidas)[0] += "ERROR: El tamaño debe de ser un valor númerico.\n"
+                //fmt.Println("ERROR: El tamaño debe de ser un valor númerico.")
                 return
             }
 
@@ -61,7 +62,8 @@ func Fdisk(parametros *[]string) {
         } else if tag == "name" {
             nombre = value
         } else {
-            fmt.Printf("ERROR: El parametro %s no es valido.\n", tag)
+            (*salidas)[0] += "ERROR: El parametro" + tag + "no es valido.\n"
+            //fmt.Printf("ERROR: El parametro %s no es valido.\n", tag)
             paramFlag = false
             break
         }
@@ -77,7 +79,8 @@ func Fdisk(parametros *[]string) {
     }
 
     if !required {
-        fmt.Println("ERROR: La instrucción fdisk carece de todos los parametros obligatorios.")
+        (*salidas)[0] += "ERROR: La instrucción fdisk carece de todos los parametros obligatorios.\n"
+        //fmt.Println("ERROR: La instrucción fdisk carece de todos los parametros obligatorios.")
         return
     }
 
@@ -87,35 +90,41 @@ func Fdisk(parametros *[]string) {
 	unidad = strings.ToLower(unidad)
 
 	if comando == "create" && tamaño <= 0 {
-        fmt.Println("ERROR: El tamaño de la nueva partición debe de ser mayor que 0.")
+        (*salidas)[0] += "ERROR: El tamaño de la nueva partición debe de ser mayor que 0.\n"
+        //fmt.Println("ERROR: El tamaño de la nueva partición debe de ser mayor que 0.")
         valid = false
     }
 
     if fit == "bf" || fit == "ff" || fit == "wf" || fit == "" {
     } else {
-        fmt.Println("ERROR: Tipo de Fit Invalido.")
+        (*salidas)[0] += "ERROR: Tipo de Fit Invalido.\n"
+        //fmt.Println("ERROR: Tipo de Fit Invalido.")
         valid = false
     }
 
     if tipo == "p" || tipo == "e" || tipo == "l" || tipo == "" {
     } else {
-        fmt.Println("ERROR: Tipo de Particion Invalido.")
+        (*salidas)[0] += "ERROR: Tipo de Particion Invalido.\n"
+        //fmt.Println("ERROR: Tipo de Particion Invalido.")
         valid = false
     }
 
     if unidad == "k" || unidad == "m" || unidad == "b"|| unidad == "" {
     } else {
-        fmt.Println("ERROR: Tipo de Unidad Invalido.")
+        (*salidas)[0] += "ERROR: Tipo de Unidad Invalido.\n"
+        //fmt.Println("ERROR: Tipo de Unidad Invalido.")
         valid = false
     }
 
     if comando == "" {
-        fmt.Println("ERROR: La instrucción carece de una tarea (añadir, borrar o modificar).")
+        (*salidas)[0] += "ERROR: La instrucción carece de una tarea (añadir, borrar o modificar).\n"
+        //fmt.Println("ERROR: La instrucción carece de una tarea (añadir, borrar o modificar).")
         valid = false
     }
 
     if comando_cont != 1 {
-        fmt.Println("ERROR: La instrucción posee más de una tarea (añadir, borrar o modificar).")
+        (*salidas)[0] += "ERROR: La instrucción posee más de una tarea (añadir, borrar o modificar).\n"
+        //fmt.Println("ERROR: La instrucción posee más de una tarea (añadir, borrar o modificar).")
         valid = false
     }
 
@@ -149,7 +158,8 @@ func Fdisk(parametros *[]string) {
 	// VERIFICAR QUE EL ARCHIVO EXISTA
 	archivo, err := os.OpenFile(ruta, os.O_RDWR, 0644)
 	if err != nil {
-		fmt.Println("ERROR: El disco no existe.")
+        (*salidas)[0] += "ERROR: El disco no existe.\n"
+		//fmt.Println("ERROR: El disco no existe.")
 		return
 	} else {
 		archivo.Close()
@@ -157,15 +167,16 @@ func Fdisk(parametros *[]string) {
 
 	//SEPARAR TIPO DE OPERACIÓN Y EJECUTARLA
 	if comando == "create" {
-		crear_particion(&tamaño, &tipo_char, &ruta, &nombre, &fit_char)
+		crear_particion(&tamaño, &tipo_char, &ruta, &nombre, &fit_char, salidas)
 	}
 }
 
-func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) {
+func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte, salidas *[6]string) {
 	//VARIABLES GENERALES
 	archivo, err := os.OpenFile(*ruta, os.O_RDWR, 0666) //Disco con el que se va a trabajar
 	if err != nil {
-		fmt.Println("ERROR: El disco no existe.")
+        (*salidas)[0] += "ERROR: El disco no existe.\n"
+ 		//mt.Println("ERROR: El disco no existe.")
 		return
 	}
 	defer archivo.Close()
@@ -199,7 +210,8 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
         }
 
         if posicion == -1 {
-            fmt.Println("ERROR: No existe una partición extendida. Partición no creada.")
+            (*salidas)[0] += "ERROR: No existe una partición extendida. Partición no creada.\n"
+            //fmt.Println("ERROR: No existe una partición extendida. Partición no creada.")
             return
         }
 
@@ -285,19 +297,22 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
         }   
 
         if existe {
-            fmt.Println("ERROR: Ya existe una partición lógica con ese nombre.")
+            (*salidas)[0] += "ERROR: Ya existe una partición lógica con ese nombre.\n"
+            //fmt.Println("ERROR: Ya existe una partición lógica con ese nombre.")
             return
         }
         
         // Verificar que no sobrepase el límite
         if contador >= 24 {
-            fmt.Println("ERROR: Se ha alcanzado el máximo de particiones lógicas (24 particiones).")
+            (*salidas)[0] += "ERROR: Se ha alcanzado el máximo de particiones lógicas (24 particiones).\n"
+            //fmt.Println("ERROR: Se ha alcanzado el máximo de particiones lógicas (24 particiones).")
             return
         }
 
         // Comprobar que hay espacios vacíos en el disco
         if len(espacios) == 0 {
-            fmt.Println("ERROR: La partición expandida se encuentra totalmente ocupada.")
+            (*salidas)[0] += "ERROR: La partición expandida se encuentra totalmente ocupada.\n"
+            //fmt.Println("ERROR: La partición expandida se encuentra totalmente ocupada.")
             return
         }
 
@@ -312,7 +327,8 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
             }
 
             if posEspacio == -1 {
-                fmt.Println("ERROR: No hay espacio disponible en la partición extendida.")
+                (*salidas)[0] += "ERROR: No hay espacio disponible en la partición extendida.\n"
+                //fmt.Println("ERROR: No hay espacio disponible en la partición extendida.")
                 return
             }
         }
@@ -329,7 +345,8 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
             }
             
             if posEspacio == -1 {
-                fmt.Println("ERROR: No hay espacio disponible en la partición extendida.")
+                (*salidas)[0] += "ERROR: No hay espacio disponible en la partición extendida.\n"
+                //fmt.Println("ERROR: No hay espacio disponible en la partición extendida.")
                 return
             }
         }
@@ -342,7 +359,8 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
             }
 
             if posEspacio == -1 {
-                fmt.Println("ERROR: No hay espacio disponible en la partición extendida.")
+                (*salidas)[0] += "ERROR: No hay espacio disponible en la partición extendida.\n"
+                //fmt.Println("ERROR: No hay espacio disponible en la partición extendida.")
                 return
             }
         }
@@ -358,16 +376,14 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
             ebr.Part_status[0] = '0'
             archivo.Seek(int64(espacios[posEspacio].inicioEBR), 0)
             binary.Write(archivo, binary.LittleEndian, &ebr)
-            fmt.Println("MENSAJE: Particion lógica creada correctamente.")
+            (*salidas)[0] += "MENSAJE: Particion lógica creada correctamente.\n"
+            //fmt.Println("MENSAJE: Particion lógica creada correctamente.")
         }else{
             posEbr := espacios[posEspacio].finLogica + 1
             //Leer y reescribir el EBR padre
             archivo.Seek(int64(espacios[posEspacio].inicioEBR), 0)
             binary.Read(archivo, binary.LittleEndian, &ebr)
             copy(ebr.Part_next[:], strconv.Itoa(posEbr))
-            fmt.Println("Nuevo")
-            fmt.Println(ToString(ebr.Part_name[:]))
-            fmt.Println(ToString(ebr.Part_next[:]))
             archivo.Seek(int64(espacios[posEspacio].inicioEBR), 0)
             binary.Write(archivo, binary.LittleEndian, &ebr)
          
@@ -381,7 +397,8 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
             copy(nebr.Part_next[:], []byte(strconv.Itoa(-1)))
             archivo.Seek(int64(posEbr), 0)
             binary.Write(archivo, binary.LittleEndian, &nebr)
-            fmt.Println("MENSAJE: Particion lógica creada correctamente.")
+            (*salidas)[0] += "MENSAJE: Particion lógica creada correctamente.\n"
+            //fmt.Println("MENSAJE: Particion lógica creada correctamente.")
         }
     }
 
@@ -409,12 +426,14 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
         }
     
         if extendedExist && *tipo == 'e' {
-            fmt.Println("ERROR: Solo puede existir una partición extendida a la vez.")
+            (*salidas)[0] += "ERROR: Solo puede existir una partición extendida a la vez.\n"
+            //fmt.Println("ERROR: Solo puede existir una partición extendida a la vez.")
             return
         }
     
         if posicion == -1 {
-            fmt.Println("ERROR: Limite de particiones alcanzado (4). Elimine una particion para continuar.")
+            (*salidas)[0] += "ERROR: Limite de particiones alcanzado (4). Elimine una particion para continuar.\n"
+            //fmt.Println("ERROR: Limite de particiones alcanzado (4). Elimine una particion para continuar.")
             return
         }
 
@@ -434,7 +453,8 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
         }
 
         if existe {
-            fmt.Println("ERROR: Ya existe una particion con el nombre indicado.")
+            (*salidas)[0] += "ERROR: Ya existe una particion con el nombre indicado.\n"
+            //fmt.Println("ERROR: Ya existe una particion con el nombre indicado.")
             return
         }
 
@@ -505,7 +525,8 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
         } 
 
         if len(espacios) == 0 {
-            fmt.Println("ERROR: No hay espacio disponible en el disco (1).")
+            (*salidas)[0] += "ERROR: No hay espacio disponible en el disco (1).\n"
+            //fmt.Println("ERROR: No hay espacio disponible en el disco (1).")
             return
         }
         
@@ -520,7 +541,8 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
             }
         
             if posEspacio == -1 {
-                fmt.Println("ERROR: No hay espacio disponible en el disco (2).")
+                (*salidas)[0] += "ERROR: No hay espacio disponible en el disco (2).\n"
+                //fmt.Println("ERROR: No hay espacio disponible en el disco (2).")
                 archivo.Close()
                 return
             }
@@ -538,7 +560,8 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
             }
     
             if posEspacio == -1 {
-                fmt.Println("ERROR: No hay espacio disponible en el disco. (3)")
+                (*salidas)[0] += "ERROR: No hay espacio disponible en el disco. (3)\n"
+                //fmt.Println("ERROR: No hay espacio disponible en el disco. (3)")
                 return
             }
         }
@@ -552,7 +575,8 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
             }
         
             if posEspacio == -1 {
-                fmt.Println("ERROR: No hay espacio disponible en el disco. (4)")
+                (*salidas)[0] += "ERROR: No hay espacio disponible en el disco. (4)\n"
+                //fmt.Println("ERROR: No hay espacio disponible en el disco. (4)")
                 return
             }
         }
@@ -579,7 +603,8 @@ func crear_particion(tamaño *int, tipo *byte, ruta, nombre *string, fit *byte) 
             archivo.Seek(int64(espacios[posEspacio].inicio), 0)
             binary.Write(archivo, binary.LittleEndian, &ebr)
         }
-        fmt.Println("MENSAJE: Particion creada correctamente.")
+        (*salidas)[0] += "MENSAJE: Particion creada correctamente.\n"
+        //fmt.Println("MENSAJE: Particion creada correctamente.")
     }
 
 }

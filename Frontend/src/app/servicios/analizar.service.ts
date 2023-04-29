@@ -8,51 +8,72 @@ import { Observable } from "rxjs";
 })
 export class AnalizarService {
 
-  static el: Array<any>;  //ERROES
-  static sl: Array<any>; //SINBOLOS
-  static sm: Array<any>; //METODOS
-  static dot: string; //CODIGO DOT
+  static particion: string;    //ID de la particion
+  static tree:      string;    //DOT del reporte arbol
+  static sb:        string;    //DOT del superbloque
+  static disk:      string;    //DOT del disco
 
   constructor(private http: HttpClient) { }
 
-  ejecutar(codigo: any): Observable<any> {
+  ejecutarConsola(entrada: any): Observable<any> {
     const httpOptions = {
       headers: new HttpHeaders({
         'Content-Type': 'application/json'
       }),
     };
-    return this.http.post<any>(URL + 'analizar', codigo);
+    return this.http.post<any>(URL + 'consola', entrada);
   }
 
-  setErrores(lista:Array<any>):void{
-    AnalizarService.el = lista;
+  ejecutarLogin(entrada: any): Observable<any> {
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      }),
+    };
+    return this.http.post<any>(URL + 'login', entrada);
   }
 
-  getErrores(): Array<any>{
-    return AnalizarService.el;
+  ejecutarFile(entrada: any): Observable<any> {
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      }),
+    };
+    return this.http.post<any>(URL + 'file', entrada);
   }
 
-  setSimbolos(lista:Array<any>):void{
-    AnalizarService.sl = lista;
+  //VARIABLES GLOBALES
+  setParticion(entrada:string):void{
+    AnalizarService.particion = entrada;
   }
 
-  getSimbolos(): Array<any>{
-    return AnalizarService.sl;
+  getParticion(): string{
+    return AnalizarService.particion;
   }
 
-  setMetodos(lista:Array<any>):void{
-    AnalizarService.sm = lista;
+  setTree(entrada:string):void{
+    AnalizarService.tree = entrada;
   }
 
-  getMetodos(): Array<any>{
-    return AnalizarService.sm;
+  getTree(): string{
+    return AnalizarService.tree;
   }
 
-  setDOT(lista:string):void{
-    AnalizarService.dot = lista;
+  setSB(entrada:string):void{
+    AnalizarService.sb = entrada;
   }
 
-  getDOT(): string{
-    return AnalizarService.dot;
+  getSB(): string{
+    return AnalizarService.sb;
   }
+
+  setDisk(entrada:string):void{
+    AnalizarService.disk = entrada;
+  }
+
+  getDisk(): string{
+    return AnalizarService.disk;
+  }
+
+  
 }

@@ -1,0 +1,22 @@
+# Archivo de Ejemplo
+#mkdisk
+mkdisk >size=25 >path="/home/jjonk19/Documentos/Ingenieria/Proyectos/MIA/MIA-Proyecto1_201909035/ Mis Discos/Disco1.dsk"
+
+#Crear
+fdisk >size=5 >unit=m >path="/home/jjonk19/Documentos/Ingenieria/Proyectos/MIA/MIA-Proyecto1_201909035/ Mis Discos/Disco1.dsk" >name=Part1
+
+#Mount
+mount >path="/home/jjonk19/Documentos/Ingenieria/Proyectos/MIA/MIA-Proyecto1_201909035/ Mis Discos/Disco1.dsk" >name=Part1
+
+#mkfs
+mkfs >id=351A 
+
+#login 
+login >user=root >pass=123 >id=351A
+
+#reportes
+rep >id=351A >path="/home/jjonk19/Documentos/Ingenieria/Proyectos/MIA/MIA-Proyecto1_201909035/ Mis Discos/disk.pdf" >name=disk
+rep >id=351A >path="/home/jjonk19/Documentos/Ingenieria/Proyectos/MIA/MIA-Proyecto1_201909035/ Mis Discos/sb.pdf" >name=sb
+rep >id=351A >path="/home/jjonk19/Documentos/Ingenieria/Proyectos/MIA/MIA-Proyecto1_201909035/ Mis Discos/sb.pdf" >name=tree
+rep >id=351A >Path="/home/jjonk19/Documentos/Ingenieria/Proyectos/MIA/MIA-Proyecto1_201909035/ Mis Discos/file.txt" >ruta="/users.txt" >name=file
+

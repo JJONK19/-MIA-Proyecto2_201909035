@@ -1,7 +1,7 @@
 package programa
 
 import (
-	"fmt"
+	//"fmt"
 	"regexp"
 	"strings"
     "unicode"
@@ -15,7 +15,7 @@ import (
     "time"
 )
 
-func Rep(parametros *[]string, discos *[]Disco) {
+func Rep(parametros *[]string, discos *[]Disco, salidas *[6]string) {
     var paramFlag bool = true // Indica si se cumplen con los parametros del comando
 	var required bool = true // Indica si vienen los parametros obligatorios
 	var ruta string = "" // Atributo path
@@ -46,7 +46,8 @@ func Rep(parametros *[]string, discos *[]Disco) {
         } else if tag == "ruta" {
             rutaS = value
         } else {
-            fmt.Printf("ERROR: El parametro %s no es valido.\n", tag)
+            (*salidas)[0] += "ERROR: El parametro" + tag + "no es valido.\n"
+            //fmt.Printf("ERROR: El parametro %s no es valido.\n", tag)
             paramFlag = false
             break
         }
@@ -62,7 +63,8 @@ func Rep(parametros *[]string, discos *[]Disco) {
     }
 
     if !required {
-        fmt.Println("ERROR: La instrucción rep carece de todos los parametros obligatorios.")
+        (*salidas)[0] += "ERROR: La instrucción rep carece de todos los parametros obligatorios.\n" 
+        //fmt.Println("ERROR: La instrucción rep carece de todos los parametros obligatorios.")
         return
     }
 
@@ -92,25 +94,29 @@ func Rep(parametros *[]string, discos *[]Disco) {
 
     //BUSCAR LA PARTICION DENTRO DEL DISCO MONTADO
 	if posDisco > len(*discos){
-		fmt.Println("ERROR: El disco no se encuentra montado.")
+        (*salidas)[0] += "ERROR: El disco no se encuentra montado.\n" 
+		//fmt.Println("ERROR: El disco no se encuentra montado.")
         return
 	}
     tempD := (*discos)[posDisco]
 
 	if posParticion > len(tempD.particiones){
-		fmt.Println("ERROR: La partición no se encuentra montado.")
+        (*salidas)[0] += "ERROR: La partición no se encuentra montado.\n" 
+		//fmt.Println("ERROR: La partición no se encuentra montado.")
         return
 	}
 
     // CREAR DIRECTORIOS EN CASO NO EXISTAN
     if err := os.MkdirAll(filepath.Dir(ruta), os.ModePerm); err != nil {
-        fmt.Println("Error creando directorios:", err)
+        (*salidas)[0] += "Error creando directorios.\n" 
+        //fmt.Println("Error creando directorios:", err)
         return
     }
 
     // BORRAR EL ARCHIVO EN CASO YA EXISTA
     if err := os.Remove(ruta); err != nil && !os.IsNotExist(err) {
-        fmt.Println("Error borrando archivo:", err)
+        (*salidas)[0] += "Error borrando archivo.\n" 
+        //fmt.Println("Error borrando archivo:", err)
         return
     }
 
@@ -119,21 +125,22 @@ func Rep(parametros *[]string, discos *[]Disco) {
 
     switch nombre {
     case "mbr":
-        Mbr(discos, posDisco, &ruta)
+        Mbr(discos, posDisco, &ruta, salidas)
     case "disk":
-        Disk(discos, posDisco, &ruta)
+        Disk(discos, posDisco, &ruta, salidas)
     case "tree":
-        Tree(discos, posDisco, posParticion, &ruta)
+        Tree(discos, posDisco, posParticion, &ruta, salidas)
     case "sb":
-        Sb(discos, posDisco, posParticion, &ruta)
+        Sb(discos, posDisco, posParticion, &ruta, salidas)
     case "file":
-        File(discos, posDisco, posParticion, &ruta, &rutaS)
+        File(discos, posDisco, posParticion, &ruta, &rutaS, salidas)
     default:
-        fmt.Println("ERROR: Tipo de reporte invalido.")
+        (*salidas)[0] += "ERROR: Tipo de reporte invalido.\n" 
+        //fmt.Println("ERROR: Tipo de reporte invalido.")
     }
 }
 
-func Mbr(discos *[]Disco, posDisco int, ruta *string){
+func Mbr(discos *[]Disco, posDisco int, ruta *string, salidas *[6]string){
     var codigo string //Contenedor del codigo del dot
     uso := (*discos)[posDisco] //Disco en uso
     var mbr MBR //Para leer el mbr
@@ -144,7 +151,8 @@ func Mbr(discos *[]Disco, posDisco int, ruta *string){
     //VERIFICAR QUE EXISTA EL ARCHIVO
     archivo, err := os.OpenFile(uso.ruta, os.O_RDWR, 0644)
     if err != nil {
-        fmt.Println("ERROR: No se encontro el disco.")
+        (*salidas)[0] += "ERROR: No se encontro el disco.\n"
+        //fmt.Println("ERROR: No se encontro el disco.")
         return
     }
     defer archivo.Close()
@@ -353,6 +361,7 @@ func Mbr(discos *[]Disco, posDisco int, ruta *string){
     }
 
     codigo += "</TABLE>>];}"
+
     //GENERAR EL DOT
     salida, err := os.Create("grafo.dot")
     defer salida.Close()
@@ -371,10 +380,11 @@ func Mbr(discos *[]Disco, posDisco int, ruta *string){
     if err != nil {
     
     }
-    fmt.Println("MENSAJE: Reporte MBR creado correctamente.")
+    (*salidas)[0] += "MENSAJE: Reporte MBR creado correctamente.\n"
+    //fmt.Println("MENSAJE: Reporte MBR creado correctamente.")
 }
 
-func Disk(discos *[]Disco, posDisco int, ruta *string){
+func Disk(discos *[]Disco, posDisco int, ruta *string, salidas *[6]string){
     //VARIABLES
     var codigo string = "" //Contenedor del código del dot
     uso := (*discos)[posDisco] //Disco en uso
@@ -390,7 +400,8 @@ func Disk(discos *[]Disco, posDisco int, ruta *string){
     //VERIFICAR QUE EXISTA EL ARCHIVO
     archivo, err := os.OpenFile(uso.ruta, os.O_RDWR, 0644)
     if err != nil {
-        fmt.Println("ERROR: No se encontro el disco.")
+        (*salidas)[0] += "ERROR: No se encontro el disco.\n"
+        //fmt.Println("ERROR: No se encontro el disco.")
         return
     }
     defer archivo.Close()
@@ -643,6 +654,10 @@ func Disk(discos *[]Disco, posDisco int, ruta *string){
     }
     
     codigo += "</TABLE>>];}"
+
+    //ALMACENAR EL DOT
+    (*salidas)[5] = codigo
+
     //GENERAR EL DOT
     salida, err := os.Create("grafo.dot")
     defer salida.Close()
@@ -661,10 +676,11 @@ func Disk(discos *[]Disco, posDisco int, ruta *string){
     if err != nil {
     
     }
-    fmt.Println("MENSAJE: Reporte DISKS creado correctamente.")
+    (*salidas)[0] += "MENSAJE: Reporte DISKS creado correctamente.\n"
+    //fmt.Println("MENSAJE: Reporte DISKS creado correctamente.")
 }
 
-func Tree(discos *[]Disco, posDisco int, posParticion int, ruta *string){
+func Tree(discos *[]Disco, posDisco int, posParticion int, ruta *string, salidas *[6]string){
     //VARIABLES
     codigo := ""
     disc_uso := (*discos)[posDisco] //Disco en uso
@@ -678,7 +694,8 @@ func Tree(discos *[]Disco, posDisco int, posParticion int, ruta *string){
     //VERIFICAR QUE EL ARCHIVO EXISTE
     archivo, err := os.OpenFile(disc_uso.ruta, os.O_RDWR, 0644) //Para leer el archivo
     if err != nil {
-        fmt.Println("ERROR: No se encontro el disco.")
+        (*salidas)[0] += "ERROR: No se encontro el disco.\n"
+        //fmt.Println("ERROR: No se encontro el disco.")
         return
     }
 
@@ -710,8 +727,11 @@ func Tree(discos *[]Disco, posDisco int, posParticion int, ruta *string){
     // Leer el inodo raíz. Es el número 0.
     inodo_leido := 0
     padre := ""
-    leer_inodo(disc_uso.ruta, posInodos, posBloques, inodo_leido, &codigo, padre)
+    leer_inodo(disc_uso.ruta, posInodos, posBloques, inodo_leido, &codigo, padre, salidas)
     codigo += "}"
+
+    //ASIGNAR EL DOT
+    (*salidas)[3] = codigo
 
     //GENERAR EL DOT
     salida, err := os.Create("grafo.dot")
@@ -731,12 +751,11 @@ func Tree(discos *[]Disco, posDisco int, posParticion int, ruta *string){
     if err != nil {
     
     }
-    fmt.Println("MENSAJE: Reporte Tree creado correctamente.")
+    (*salidas)[0] += "MENSAJE: Reporte Tree creado correctamente.\n"
+    //fmt.Println("MENSAJE: Reporte Tree creado correctamente.")
 }
 
-func leer_inodo(ruta string, posInodos int, posBloques int, no_inodo int, codigo *string, padre string){
-    fmt.Println("Inodo")
-    fmt.Println(no_inodo)
+func leer_inodo(ruta string, posInodos int, posBloques int, no_inodo int, codigo *string, padre string, salidas *[6]string){
     // VARIABLES
     var linodo Inodo        // Para leer inodos
     var posLectura int      // Usado para las posiciones de lectura
@@ -744,7 +763,8 @@ func leer_inodo(ruta string, posInodos int, posBloques int, no_inodo int, codigo
     // ABRIR ARCHIVO
     archivo, err := os.OpenFile(ruta, os.O_RDWR, 0644)
     if err != nil {
-        fmt.Println("Error al abrir archivo: %s", err)
+        (*salidas)[0] += "Error al abrir archivo.\n"
+        //fmt.Println("Error al abrir archivo: %s", err)
     }
 
     // DECLARAR EL INODO
@@ -754,7 +774,8 @@ func leer_inodo(ruta string, posInodos int, posBloques int, no_inodo int, codigo
     
     if linodo.I_type[0] != '0' {
         if linodo.I_type[0] != '1' {
-            fmt.Println("ERROR: No se encontró el inodo raiz.")
+            (*salidas)[0] += "ERROR: No se encontró el inodo raiz.\n"
+            //fmt.Println("ERROR: No se encontró el inodo raiz.")
             return
         }
     }
@@ -824,7 +845,6 @@ func leer_inodo(ruta string, posInodos int, posBloques int, no_inodo int, codigo
     *codigo += "</TR>"
 
     recorrer := ToStringArray(linodo.I_block[:])
-    fmt.Println(recorrer)
     for j := 0; j < 16; j++ {
         *codigo += "<TR>"
         *codigo += "<TD Align='left'>"
@@ -871,18 +891,16 @@ func leer_inodo(ruta string, posInodos int, posBloques int, no_inodo int, codigo
 
         nombre_nodo := nombre + ":P" + strconv.Itoa(i)
         if linodo.I_type[0] == '0' {
-            leer_carpeta(ruta, posInodos, posBloques, direccion, codigo, nombre_nodo)
+            leer_carpeta(ruta, posInodos, posBloques, direccion, codigo, nombre_nodo, salidas)
         } else {
-            leer_archivo(ruta, posInodos, posBloques, direccion, codigo, nombre_nodo)
+            leer_archivo(ruta, posInodos, posBloques, direccion, codigo, nombre_nodo, salidas)
         }
 
     }
     archivo.Close()
 }
 
-func leer_carpeta(ruta string, posInodos int, posBloques int, no_bloque int, codigo *string, padre string){
-    fmt.Println("Carpeta")
-    fmt.Println(no_bloque)
+func leer_carpeta(ruta string, posInodos int, posBloques int, no_bloque int, codigo *string, padre string, salidas *[6]string){
     //VARIABLES
     var lcarpeta Bcarpetas //Para leer bloques de carpetas
     var posLectura int //Usado para las posiciones de lectura
@@ -945,13 +963,11 @@ func leer_carpeta(ruta string, posInodos int, posBloques int, no_bloque int, cod
         }
 
         nombreNodo := nombre + ":P" + strconv.Itoa(i)
-        leer_inodo(ruta, posInodos, posBloques, direccion, codigo, nombreNodo)
+        leer_inodo(ruta, posInodos, posBloques, direccion, codigo, nombreNodo, salidas)
     }
     archivo.Close()
 }
-func leer_archivo(ruta string, posInodos int, posBloques int, no_bloque int, codigo *string, padre string){
-    fmt.Println("Archivo")
-    fmt.Println(no_bloque)
+func leer_archivo(ruta string, posInodos int, posBloques int, no_bloque int, codigo *string, padre string, salidas *[6]string){
     //VARIABLES
     var larchivo Barchivos           // Para leer bloques de archivos
     var posLectura int               // Usado para las posiciones de lectura
@@ -998,7 +1014,7 @@ func leer_archivo(ruta string, posInodos int, posBloques int, no_bloque int, cod
     archivo.Close()
 }
 
-func Sb(discos *[]Disco, posDisco int, posParticion int, ruta *string){
+func Sb(discos *[]Disco, posDisco int, posParticion int, ruta *string, salidas *[6]string){
     //VARIABLES
     var codigo string //Contenedor del codigo del dot
     disco_uso := (*discos)[posDisco] //Disco en uso
@@ -1013,7 +1029,8 @@ func Sb(discos *[]Disco, posDisco int, posParticion int, ruta *string){
     //VERIFICAR QUE EXISTA EL ARCHIVO
     archivo, err := os.OpenFile(disco_uso.ruta, os.O_RDWR, 0644)
     if err != nil {
-    fmt.Println("ERROR: No se encontro el disco.")
+        (*salidas)[0] += "ERROR: No se encontro el disco.\n"
+        //fmt.Println("ERROR: No se encontro el disco.")
     return
     }
     defer archivo.Close()
@@ -1166,6 +1183,9 @@ func Sb(discos *[]Disco, posDisco int, posParticion int, ruta *string){
 
     codigo += "</TABLE>>];}"
 
+    //ASIGNAR EL DOT
+    (*salidas)[4] = codigo
+
     //GENERAR EL DOT
     salida, err := os.Create("grafo.dot")
     defer salida.Close()
@@ -1184,10 +1204,11 @@ func Sb(discos *[]Disco, posDisco int, posParticion int, ruta *string){
     if err != nil {
     
     }
-    fmt.Println("MENSAJE: Reporte Super Bloque creado correctamente.")
+    (*salidas)[0] += "MENSAJE: Reporte Super Bloque creado correctamente.\n"
+    //fmt.Println("MENSAJE: Reporte Super Bloque creado correctamente.")
 }
 
-func File(discos *[]Disco, posDisco int, posParticion int, ruta *string, ruta_contenido *string){
+func File(discos *[]Disco, posDisco int, posParticion int, ruta *string, ruta_contenido *string, salidas *[6]string){
     //VARIABLES
     disc_uso := (*discos)[posDisco] //Disco en uso
     part_uso := disc_uso.particiones[posParticion] //Particion Montada
@@ -1203,14 +1224,16 @@ func File(discos *[]Disco, posDisco int, posParticion int, ruta *string, ruta_co
     //VERIFICAR QUE EL ARCHIVO EXISTE
     archivo, err := os.OpenFile(disc_uso.ruta, os.O_RDWR, 0644) //Para leer el archivo
     if err != nil {
-        fmt.Println("ERROR: No se encontro el disco.")
+        (*salidas)[0] += "ERROR: No se encontro el disco.\n"
+        //fmt.Println("ERROR: No se encontro el disco.")
         return
     }
     defer archivo.Close()
 
     //VERIFICAR QUE VENGA LA RUTA DEL ARCHIVO A LEER
     if *ruta_contenido == "" {
-        fmt.Println("ERROR: Se necesita la ruta del archivo a leer.")
+        (*salidas)[0] += "ERROR: Se necesita la ruta del archivo a leer.\n"
+        //fmt.Println("ERROR: Se necesita la ruta del archivo a leer.")
         return
     }
 
@@ -1239,7 +1262,8 @@ func File(discos *[]Disco, posDisco int, posParticion int, ruta *string, ruta_co
     
     if linodo.I_type[0] != '0' {
         if linodo.I_type[0] != '1' {
-            fmt.Println("ERROR: No se encontró el inodo raiz.")
+            (*salidas)[0] += "ERROR: No se encontró el inodo raiz.\n"
+            //fmt.Println("ERROR: No se encontró el inodo raiz.")
             return
         }
     }
@@ -1297,13 +1321,15 @@ func File(discos *[]Disco, posDisco int, posParticion int, ruta *string, ruta_co
 
         if inodo_temporal == -1 {
             continuar = false
-            fmt.Println("ERROR: La ruta ingresada del contenido no existe.")
+            (*salidas)[0] += "ERROR: La ruta ingresada del contenido no existe.\n"
+            //fmt.Println("ERROR: La ruta ingresada del contenido no existe.")
             inodo_leido = -1
         } else if posicion == len(path_cont) && linodo.I_type[0] == '1' {
             continuar = false
         } else if posicion == len(path_cont) && linodo.I_type[0] == '0' {
             continuar = false
-            fmt.Println("ERROR: No se encontró el archivo con el contenido a leer.")
+            (*salidas)[0] += "ERROR: No se encontró el archivo con el contenido a leer.\n"
+            //fmt.Println("ERROR: No se encontró el archivo con el contenido a leer.")
             inodo_leido = -1
         }
     }
@@ -1327,11 +1353,14 @@ func File(discos *[]Disco, posDisco int, posParticion int, ruta *string, ruta_co
         contenido += temp
     }
 
+    //ASIGNAR EL CONTENIDO
+    (*salidas)[2] = contenido
     //GENERAR EL DOT
     salida, err := os.Create(*ruta)
     defer salida.Close()
     _, err = salida.WriteString(contenido + "\n")
 
-    fmt.Println("MENSAJE: Reporte file creado correctamente.")
+    (*salidas)[0] += "MENSAJE: Reporte file creado correctamente.\n" 
+    //fmt.Println("MENSAJE: Reporte file creado correctamente.")
 
 }

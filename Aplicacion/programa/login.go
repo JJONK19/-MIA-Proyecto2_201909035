@@ -2,7 +2,7 @@ package programa
 
 import (
 	"encoding/binary"
-	"fmt"
+	//"fmt"
 	"os"
 	"regexp"
 	"strconv"
@@ -10,10 +10,11 @@ import (
 	"unicode"
 )
 
-func Login(parametros *[]string, discos *[]Disco, sesion *Usuario) {
+func Login(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]string) {
 	//VERIFICAR QUE NO EXISTA UNA SESIÓN
 	if sesion.user != "" {
-		fmt.Println("ERROR: Ya hay una sesión iniciada.")
+		(*salidas)[0] += "ERROR: Ya hay una sesión iniciada.\n"
+		//fmt.Println("ERROR: Ya hay una sesión iniciada.")
 		return
 	}
 
@@ -54,7 +55,8 @@ func Login(parametros *[]string, discos *[]Disco, sesion *Usuario) {
 		} else if tag == "pass" {
 			pass = value
 		} else {
-			fmt.Printf("ERROR: El parametro %s no es valido.\n", tag)
+			(*salidas)[0] += "ERROR: El parametro" + tag + "no es valido.\n"
+			//fmt.Printf("ERROR: El parametro %s no es valido.\n", tag)
 			paramFlag = false
 			break
 		}
@@ -70,7 +72,8 @@ func Login(parametros *[]string, discos *[]Disco, sesion *Usuario) {
 	}
 
 	if !required {
-		fmt.Println("ERROR: La instrucción login carece de todos los parametros obligatorios.")
+		(*salidas)[0] += "ERROR: La instrucción login carece de todos los parametros obligatorios.\n"
+		//fmt.Println("ERROR: La instrucción login carece de todos los parametros obligatorios.")
 		return
 	}
 
@@ -97,13 +100,15 @@ func Login(parametros *[]string, discos *[]Disco, sesion *Usuario) {
 
 	//BUSCAR LA PARTICION DENTRO DEL DISCO MONTADO
 	if posDisco > len(*discos) {
-		fmt.Println("ERROR: El disco no se encuentra montado.")
+		(*salidas)[0] += "ERROR: El disco no se encuentra montado.\n"
+		//fmt.Println("ERROR: El disco no se encuentra montado.")
 		return
 	}
 	tempD := (*discos)[posDisco]
 
 	if posParticion > len(tempD.particiones) {
-		fmt.Println("ERROR: La partición no se encuentra montado.")
+		(*salidas)[0] += "ERROR: La partición no se encuentra montado.\n"
+		//fmt.Println("ERROR: La partición no se encuentra montado.")
 		return
 	}
 
@@ -111,7 +116,8 @@ func Login(parametros *[]string, discos *[]Disco, sesion *Usuario) {
 	formatear := tempD.particiones[posParticion]
 	archivo, err := os.OpenFile(tempD.ruta, os.O_RDWR, 0644)
 	if err != nil {
-		fmt.Println("ERROR: No se encontro el disco.")
+		(*salidas)[0] += "ERROR: No se encontro el disco.\n"
+		//fmt.Println("ERROR: No se encontro el disco.")
 		return
 	}
 	defer archivo.Close()
@@ -154,7 +160,7 @@ func Login(parametros *[]string, discos *[]Disco, sesion *Usuario) {
 		binary.Read(archivo, binary.LittleEndian, &lcarpeta)
 
 		for j := 0; j < 4; j++ {
-			carpeta := string(lcarpeta.B_content[j].B_name[:])
+			carpeta := ToString(lcarpeta.B_content[j].B_name[:])
 
 			if carpeta == "users.txt" {
 				inodo_buscado = ToInt(lcarpeta.B_content[j].B_inodo[:])
@@ -164,7 +170,8 @@ func Login(parametros *[]string, discos *[]Disco, sesion *Usuario) {
 	}
 
 	if inodo_buscado == -1 {
-		fmt.Println("ERROR: No se encontró el archivo de usuarios.")
+		(*salidas)[0] += "ERROR: No se encontró el archivo de usuarios.\n"
+		//fmt.Println("ERROR: No se encontró el archivo de usuarios.")
 		return
 	}
 
@@ -184,7 +191,7 @@ func Login(parametros *[]string, discos *[]Disco, sesion *Usuario) {
 		archivo.Seek(int64(posLectura), 0)
 		binary.Read(archivo, binary.LittleEndian, &larchivo)
 
-		temp := string(larchivo.B_content[:])
+		temp := ToString(larchivo.B_content[:])
 		texto += temp
 	}
 
@@ -207,7 +214,8 @@ func Login(parametros *[]string, discos *[]Disco, sesion *Usuario) {
 				}
 			} else {
 				if atributos[3] == user && atributos[4] == pass {
-					fmt.Println("ERROR: El usuario que busca ha sido eliminado.")
+					(*salidas)[0] += "ERROR: El usuario que busca ha sido eliminado.\n"
+					//fmt.Println("ERROR: El usuario que busca ha sido eliminado.")
 					return
 				}
 			}
@@ -230,7 +238,8 @@ func Login(parametros *[]string, discos *[]Disco, sesion *Usuario) {
 				}
 			} else {
 				if atributos[2] == sesion.grupo {
-					fmt.Println("ERROR: El grupo al que el usuario pertenece fue eliminado.")
+					(*salidas)[0] += "ERROR: El grupo al que el usuario pertenece fue eliminado.\n"
+					//fmt.Println("ERROR: El grupo al que el usuario pertenece fue eliminado.")
 					return
 				}
 			}
@@ -238,9 +247,12 @@ func Login(parametros *[]string, discos *[]Disco, sesion *Usuario) {
 	}
 
 	if !existe_usuario {
-		fmt.Println("ERROR: Usuario Inexistente. No es posible iniciar sesión.")
+		(*salidas)[0] += "ERROR: Usuario Inexistente. No es posible iniciar sesión.\n"
+		//fmt.Println("ERROR: Usuario Inexistente. No es posible iniciar sesión.")
 	} else {
-		fmt.Println("MENSAJE: Inicio de Sesión Exitoso.")
+		(*salidas)[0] += "MENSAJE: Inicio de Sesión Exitoso.\n"
+		(*salidas)[1] = "1"
+		//fmt.Println("MENSAJE: Inicio de Sesión Exitoso.")
 	}
 
 }

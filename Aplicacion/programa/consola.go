@@ -1,17 +1,17 @@
 package programa
 
 import (
-	"fmt"
-	"bufio"
-	"os"
+	//"fmt"
+	//"bufio"
+	//"os"
     "strings"
 )
 
-func Consola(){
-	//VARIABLES
+func Consola(sesion *Usuario, discos *[]Disco, salida *[6]string, comandos *string){
+	//Para ejecutar en consola
+    /*
+    //VARIABLES
 	var continuar bool = true
-    var sesion Usuario
-    var discos []Disco
 
 	//CONSOLA DE COMANDOS
     fmt.Println("****************************************************************************************************")
@@ -40,8 +40,24 @@ func Consola(){
 
         //Ejecutar Instruccion
         fmt.Println("EJECUCIÓN:")
-        Ejecutar(&comando, &sesion, &discos);
+        Ejecutar(&comando, sesion, discos);
         comando = ""  
         fmt.Println()
 	}
+    */
+
+    //Para ejecutar como API
+    (*salida)[0] += "****************************************************************************************************\n"
+    (*salida)[0] += "\n"
+    (*salida)[0] += "PROYECTO 2 ARCHIVOS - 201909035\n"
+    (*salida)[0] += "\n"
+    (*salida)[0] += "****************************************************************************************************\n"
+    (*salida)[0] += "INSTRUCCION:\n"
+
+    lineas := strings.Split(*comandos, "\n")
+    for i := 0; i < len(lineas); i++ {
+        (*salida)[0] += lineas[i] + "\n"
+        Ejecutar(&lineas[i], sesion, discos, salida)
+        (*salida)[0] += "\n"
+    }
 }

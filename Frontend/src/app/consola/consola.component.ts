@@ -33,21 +33,14 @@ export class ConsolaComponent implements OnInit {
   enviarCodigo(): void {
     this.entrada = this.form.controls["codigo"].value; 
     var objeto = {
-      entrada: this.entrada,
+      comandos: this.entrada,
     }
-    /*
-    this.analizarService.ejecutar(objeto).subscribe((res:any)=>{
+    this.analizarService.ejecutarConsola(objeto).subscribe((res:any)=>{
       console.log(res)
-      this.salida = (res.salida);
-      //ACA SE CAMBIA PARA ALMACENAR VARIABLES GLOBALES Y COSAS DE LA SALIDA
-      this.analizarService.setErrores(res.errores.lista);
-      this.analizarService.setSimbolos(res.simbolos.lista);
-      this.analizarService.setMetodos(res.metodos.lista);
-      this.analizarService.setDOT(res.ast);
+      this.salida = (res.Consola);
     }, err=>{
       console.log(err)
     });
-    */
   }
 
   //Borra el texto del cuadro

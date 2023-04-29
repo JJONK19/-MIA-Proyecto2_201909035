@@ -28,33 +28,29 @@ export class ReportesComponent implements AfterViewInit {
     setTimeout(() => {
       // Inicializamos el gráfico
       d3graphviz.graphviz(this.disk.nativeElement)
-        .renderDot('digraph {a -> disk}');
+        .renderDot(this.analizarService.getDisk());
 
       d3graphviz.graphviz(this.tree.nativeElement)
-        .renderDot('digraph {a -> tree}');
+        .renderDot(this.analizarService.getTree());
 
       d3graphviz.graphviz(this.sb.nativeElement)
-        .renderDot('digraph {a -> sb}');
+        .renderDot(this.analizarService.getSB());
     });
   }
 
   enviarCodigo(): void {
     this.ruta = this.form.controls["ruta"].value; 
     var objeto = {
-      entrada: this.ruta,
+      ruta: this.ruta,
+      particion: this.analizarService.getParticion()
     }
-    /*
-    this.analizarService.ejecutar(objeto).subscribe((res:any)=>{
+  
+    this.analizarService.ejecutarFile(objeto).subscribe((res:any)=>{
       console.log(res)
-      this.salida = (res.salida);
-      //ACA SE CAMBIA PARA ALMACENAR VARIABLES GLOBALES Y COSAS DE LA SALIDA
-      this.analizarService.setErrores(res.errores.lista);
-      this.analizarService.setSimbolos(res.simbolos.lista);
-      this.analizarService.setMetodos(res.metodos.lista);
-      this.analizarService.setDOT(res.ast);
+      this.salida = (res.File);
     }, err=>{
       console.log(err)
     });
-    */
+    
   }
 }

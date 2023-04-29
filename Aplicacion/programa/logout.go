@@ -1,13 +1,14 @@
 package programa
 
 import (
-	"fmt"
+	//"fmt"
 )
 
-func Logout(sesion *Usuario) {
+func Logout(sesion *Usuario, salidas *[6]string) {
 	// VERIFICAR QUE NO EXISTA UNA SESIÓN
 	if sesion.user == "" {
-		fmt.Println("ERROR: No hay una sesión iniciada.")
+		(*salidas)[0] += "ERROR: No hay una sesión iniciada.\n"
+		//fmt.Println("ERROR: No hay una sesión iniciada.")
 		return
 	}
 
@@ -16,5 +17,7 @@ func Logout(sesion *Usuario) {
 	sesion.pass = ""
 	sesion.disco = ""
 	sesion.grupo = ""
-	fmt.Println("MENSAJE: Sesión finalizada.")
+	(*salidas)[0] += "MENSAJE: Sesión finalizada.\n"
+	(*salidas)[1] = "0"
+	//fmt.Println("MENSAJE: Sesión finalizada.")
 }

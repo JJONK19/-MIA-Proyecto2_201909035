@@ -1,11 +1,11 @@
 package programa
 
 import (
-	"fmt"
+	//"fmt"
 	"strings"
 )
 
-func Ejecutar(cadena *string, sesion *Usuario, discos *[]Disco) {
+func Ejecutar(cadena *string, sesion *Usuario, discos *[]Disco, salida *[6]string) {
 	//Variables
 	var parametros []string
 
@@ -24,19 +24,19 @@ func Ejecutar(cadena *string, sesion *Usuario, discos *[]Disco) {
 
 	switch tipo {
 	case "mkdisk":
-		Mkdisk(&parametros)
+		Mkdisk(&parametros, salida)
 	case "rmdisk":
-		Rmdisk(&parametros)
+		Rmdisk(&parametros, salida)
 	case "fdisk":
-		Fdisk(&parametros)
+		Fdisk(&parametros, salida)
 	case "mount":
-		Mount(&parametros, discos)
+		Mount(&parametros, discos, salida)
 	case "mkfs":
-		Mkfs(&parametros, discos)
+		Mkfs(&parametros, discos, salida)
 	case "login":
-		Login(&parametros, discos, sesion)
+		Login(&parametros, discos, sesion, salida)
 	case "logout":
-		Logout(sesion)
+		Logout(sesion, salida)
 	case "mkgrp":
 		//mkgrp(parametros, discos, sesion)
 	case "rmgrp":
@@ -49,12 +49,11 @@ func Ejecutar(cadena *string, sesion *Usuario, discos *[]Disco) {
 		//mkfile(parametros, discos, sesion)
 	case "mkdir":
 		//mkdir(parametros, discos, sesion)
-	case "pause":
-		//pause()
 	case "rep":
-		Rep(&parametros, discos)
+		Rep(&parametros, discos, salida)
 	default:
-		fmt.Println("ERROR: El comando ingresado no existe.")
+		//fmt.Println("ERROR: El comando ingresado no existe.")
+		(*salida)[0] += "ERROR: El comando ingresado no existe."
 	}
 
 }

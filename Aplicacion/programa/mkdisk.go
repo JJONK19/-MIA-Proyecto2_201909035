@@ -2,7 +2,7 @@ package programa
 
 import (
 	"encoding/binary"
-	"fmt"
+	//"fmt"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 )
-func Mkdisk(parametros *[]string) {
+func Mkdisk(parametros *[]string, salidas *[6]string) {
     // VARIABLES
     var paramFlag bool = true                     // Indica si se cumplen con los parametros del comando
     var required bool = true                      // Indica si vienen los parametros obligatorios
@@ -39,7 +39,8 @@ func Mkdisk(parametros *[]string) {
             var err error
             tamaño, err = strconv.Atoi(value)
             if err != nil {
-                fmt.Println("ERROR: El tamaño debe de ser un valor númerico.")
+                (*salidas)[0] += "ERROR: El tamaño debe de ser un valor númerico.\n"
+                //fmt.Println("ERROR: El tamaño debe de ser un valor númerico.")
                 return
             }
         } else if tag == "fit" {
@@ -49,7 +50,8 @@ func Mkdisk(parametros *[]string) {
         } else if tag == "path" {
             ruta = value
         } else {
-            fmt.Printf("ERROR: El parametro %s no es valido.\n", tag)
+            (*salidas)[0] += "ERROR: El parametro" + tag + "no es valido.\n"
+            //fmt.Printf("ERROR: El parametro %s no es valido.\n", tag)
             paramFlag = false
             break
         }
@@ -65,7 +67,8 @@ func Mkdisk(parametros *[]string) {
     }
 
     if !required {
-        fmt.Println("ERROR: La instrucción mkdisk carece de todos los parametros obligatorios.")
+        (*salidas)[0] += "ERROR: La instrucción mkdisk carece de todos los parametros obligatorios.\n"
+        //fmt.Println("ERROR: La instrucción mkdisk carece de todos los parametros obligatorios.")
     }
 
     // VALIDACION DE PARAMETROS
@@ -73,19 +76,22 @@ func Mkdisk(parametros *[]string) {
     unidad = strings.ToLower(unidad)
 
     if tamaño <= 0 {
-        fmt.Println("ERROR: El tamaño debe de ser mayor que 0.")
+        (*salidas)[0] += "ERROR: El tamaño debe de ser mayor que 0.\n"
+        //fmt.Println("ERROR: El tamaño debe de ser mayor que 0.")
         valid = false
     }
 
     if fit == "bf" || fit == "ff" || fit == "wf" || fit == "" {
     } else {
-        fmt.Println("ERROR: Tipo de Fit Invalido.")
+        (*salidas)[0] += "ERROR: Tipo de Fit Invalido.\n" 
+        //fmt.Println("ERROR: Tipo de Fit Invalido.")
         valid = false
     }
 
     if unidad == "k" || unidad == "m" || unidad == "" {
     } else {
-        fmt.Println("ERROR: Tipo de Unidad Invalido.")
+        (*salidas)[0] += "ERROR: Tipo de Unidad Invalido.\n"
+        //fmt.Println("ERROR: Tipo de Unidad Invalido.")
         valid = false
     }
 
@@ -110,26 +116,30 @@ func Mkdisk(parametros *[]string) {
 
     // VERIFICAR QUE EL ARCHIVO NO EXISTA
     if _, err := os.Stat(ruta); !os.IsNotExist(err) {
-        fmt.Println("ERROR: El archivo que desea crear ya existe.")
+        (*salidas)[0] += "ERROR: El archivo que desea crear ya existe.\n"
+        //fmt.Println("ERROR: El archivo que desea crear ya existe.")
         return
     }
 
     // CREAR DIRECTORIOS EN CASO NO EXISTAN
     if err := os.MkdirAll(filepath.Dir(ruta), os.ModePerm); err != nil {
-        fmt.Println("Error creando directorios:", err)
+        (*salidas)[0] += "Error creando directorios.\n"
+        //fmt.Println("Error creando directorios:", err)
         return
     }
 
     // BORRAR EL ARCHIVO EN CASO YA EXISTA
     if err := os.Remove(ruta); err != nil && !os.IsNotExist(err) {
-        fmt.Println("Error borrando archivo:", err)
+        (*salidas)[0] += "Error borrando archivo.\n"
+        //fmt.Println("Error borrando archivo:", err)
         return
     }
 
     // CREAR EL ARCHIVO BINARIO (DISCO) Y LLENARLO DE 0s
     archivo, err := os.Create(ruta)
     if err != nil {
-        fmt.Println("Error creando archivo:", err)
+        (*salidas)[0] += "Error creando archivo.\n"
+        //fmt.Println("Error creando archivo:", err)
         return
     }
     defer archivo.Close()
@@ -140,7 +150,8 @@ func Mkdisk(parametros *[]string) {
 	}
     for i := 0; i < tamaño/1024; i++ {
         if _, err := archivo.Write(kb); err != nil {
-            fmt.Println("Error escribiendo en archivo:", err)
+            (*salidas)[0] += "Error escribiendo en archivo.\n"
+            //fmt.Println("Error escribiendo en archivo:", err)
             return
         }
     }
@@ -162,5 +173,6 @@ func Mkdisk(parametros *[]string) {
     //ESCRIBIR EL STRUCT EN EL DISCO
     archivo.Seek(0, 0)                   
     binary.Write(archivo, binary.LittleEndian, &mbr)
-    fmt.Println("MENSAJE: Archivo creado correctamente.")
+    (*salidas)[0] += "MENSAJE: Archivo creado correctamente.\n"
+    //fmt.Println("MENSAJE: Archivo creado correctamente.")
 }

@@ -3,7 +3,7 @@ package programa
 import(
 	"regexp"
 	"strings"
-	"fmt"
+	//"fmt"
 	"unicode"
 	"os"
 	"encoding/binary"
@@ -13,7 +13,7 @@ import(
 	"bytes"
 )
 
-func Mkfs(parametros *[]string, discos *[]Disco){
+func Mkfs(parametros *[]string, discos *[]Disco, salidas *[6]string){
     // VARIABLES
     var paramFlag bool = true  //Indica si se cumplen con los parametros del comando
     var required bool = true   //Indica si vienen los parametros obligatorios
@@ -49,7 +49,8 @@ func Mkfs(parametros *[]string, discos *[]Disco){
 		} else if tag == "type" {
 			tipo = value
 		} else {
-			fmt.Printf("ERROR: El parametro %s no es valido.\n", tag)
+			(*salidas)[0] += "ERROR: El parametro" + tag + "no es valido.\n"
+			//fmt.Printf("ERROR: El parametro %s no es valido.\n", tag)
 			paramFlag = false
 			break
 		}
@@ -65,7 +66,8 @@ func Mkfs(parametros *[]string, discos *[]Disco){
 	}
 	
 	if !required {
-		fmt.Println("ERROR: La instrucción mount carece de todos los parametros obligatorios.")
+		(*salidas)[0] += "ERROR: La instrucción mount carece de todos los parametros obligatorios.\n"
+		//fmt.Println("ERROR: La instrucción mount carece de todos los parametros obligatorios.")
 		return
 	}
 
@@ -76,14 +78,16 @@ func Mkfs(parametros *[]string, discos *[]Disco){
 	if fs == "2fs" || fs == "3fs" || fs == "" {
 		// Valid file system type
 	} else {
-		fmt.Println("ERROR: Tipo de Sistema de Archivos Invalido.")
+		(*salidas)[0] += "ERROR: Tipo de Sistema de Archivos Invalido.\n"
+		//fmt.Println("ERROR: Tipo de Sistema de Archivos Invalido.")
 		valid = false
 	}
 	
 	if tipo == "full" || tipo == "" {
 		// Valid formatting type
 	} else {
-		fmt.Println("ERROR: Tipo de Formateo Invalido.")
+		(*salidas)[0] += "ERROR: Tipo de Formateo Invalido.\n"
+		//fmt.Println("ERROR: Tipo de Formateo Invalido.")
 		valid = false
 	}
 	
@@ -119,13 +123,15 @@ func Mkfs(parametros *[]string, discos *[]Disco){
 
     //BUSCAR LA PARTICION DENTRO DEL DISCO MONTADO
 	if posDisco > len(*discos){
-		fmt.Println("ERROR: El disco no se encuentra montado.")
+		(*salidas)[0] += "ERROR: El disco no se encuentra montado.\n"
+		//fmt.Println("ERROR: El disco no se encuentra montado.")
 		return
 	}
     tempD := (*discos)[posDisco]
 
 	if posParticion > len(tempD.particiones){
-		fmt.Println("ERROR: La partición no se encuentra montado.")
+		(*salidas)[0] += "ERROR: La partición no se encuentra montado.\n"
+ 		//fmt.Println("ERROR: La partición no se encuentra montado.")
 		return
 	}
     
@@ -133,7 +139,8 @@ func Mkfs(parametros *[]string, discos *[]Disco){
 	formatear := tempD.particiones[posParticion]
     archivo, err := os.OpenFile(tempD.ruta, os.O_RDWR, 0644)
     if err != nil {
-        fmt.Println("ERROR: No se encontro el disco.")
+		(*salidas)[0] += "ERROR: No se encontro el disco.\n"
+        //fmt.Println("ERROR: No se encontro el disco.")
         return
     }
     defer archivo.Close()
@@ -300,5 +307,6 @@ func Mkfs(parametros *[]string, discos *[]Disco){
 	archivo.Seek(int64(posLectura), 0)
 	binary.Write(archivo, binary.LittleEndian, &narchivo)
 	
-	fmt.Println("MENSAJE: Particion formateada correctamente.")
+	(*salidas)[0] += "MENSAJE: Particion formateada correctamente.\n"
+	//fmt.Println("MENSAJE: Particion formateada correctamente.")
 }

@@ -5,15 +5,15 @@
       <form [formGroup]="form" (ngSubmit)="enviarCodigo()">
         <div class="row">
           <label for="particion">ID Particion:</label>
-          <input type="text" id="particion" name="particion" [(ngModel)]="particion">
+          <input class="campo" type="text" id="particion" name="particion" [(ngModel)]="particion">
         </div>
         <div class="row">
           <label for="username">Username:</label>
-          <input type="text" id="username" name="username" [(ngModel)]="username">
+          <input class="campo" type="text" id="username" name="username" [(ngModel)]="username">
         </div>
         <div class="row">
           <label for="password">Contraseña:</label>
-          <input type="text" id="password" name="password" [(ngModel)]="password">
+          <input class="campo" type="text" id="password" name="password" [(ngModel)]="password">
         </div>
         <div class="row">
           <div class="col-100 flex j-end">
