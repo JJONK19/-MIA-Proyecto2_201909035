@@ -38,17 +38,17 @@ func Ejecutar(cadena *string, sesion *Usuario, discos *[]Disco, salida *[6]strin
 	case "logout":
 		Logout(sesion, salida)
 	case "mkgrp":
-		//mkgrp(parametros, discos, sesion)
+		Mkgrp(&parametros, discos, sesion, salida)
 	case "rmgrp":
-		//rmgrp(parametros, discos, sesion)
+		Rmgrp(&parametros, discos, sesion, salida)
 	case "mkusr":
-		//mkusr(parametros, discos, sesion)
+		Mkusr(&parametros, discos, sesion, salida)
 	case "rmusr":
-		//rmusr(parametros, discos, sesion)
+		Rmusr(&parametros, discos, sesion, salida)
 	case "mkfile":
-		//mkfile(parametros, discos, sesion)
+		Mkfile(&parametros, discos, sesion, salida)
 	case "mkdir":
-		//mkdir(parametros, discos, sesion)
+		Mkdir(&parametros, discos, sesion, salida)
 	case "rep":
 		Rep(&parametros, discos, salida)
 	default:
