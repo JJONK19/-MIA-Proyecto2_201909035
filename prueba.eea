@@ -14,9 +14,35 @@ mkfs >id=351A
 #login 
 login >user=root >pass=123 >id=351A
 
+#mkgrp
+mkgrp >name=usuarios
+mkgrp >name=admins
+
+#rmgrp
+#rmgrp >name=usuarios
+#rmgrp >name=admins
+
+#mkusr
+mkusr >user=user1 >pass=usuario >grp=usuarios
+mkusr >user=admin1 >pass=admin >grp=admins
+#mkusr >user=admin2 >pass=admin >grp=admins
+
+#rmusr
+#rmusr >user=admin2
+#rmusr >user=admin1
+
+#mkdir
+#mkdir >path=/home/user >r
+#mkdir >path=/home/xd >r
+#mkdir >path=/a 
+
+#mkfile
+mkfile >path=/c.txt  >cont="/home/jjonk19/Documentos/prueba.eea"
+mkfile >path=/home/user/a.txt >r >size=20
+
 #reportes
-rep >id=351A >path="/home/jjonk19/Documentos/Ingenieria/Proyectos/MIA/MIA-Proyecto1_201909035/ Mis Discos/disk.pdf" >name=disk
-rep >id=351A >path="/home/jjonk19/Documentos/Ingenieria/Proyectos/MIA/MIA-Proyecto1_201909035/ Mis Discos/sb.pdf" >name=sb
+#rep >id=351A >path="/home/jjonk19/Documentos/Ingenieria/Proyectos/MIA/MIA-Proyecto1_201909035/ Mis Discos/disk.pdf" >name=disk
+#rep >id=351A >path="/home/jjonk19/Documentos/Ingenieria/Proyectos/MIA/MIA-Proyecto1_201909035/ Mis Discos/sb.pdf" >name=sb
 rep >id=351A >path="/home/jjonk19/Documentos/Ingenieria/Proyectos/MIA/MIA-Proyecto1_201909035/ Mis Discos/sb.pdf" >name=tree
-rep >id=351A >Path="/home/jjonk19/Documentos/Ingenieria/Proyectos/MIA/MIA-Proyecto1_201909035/ Mis Discos/file.txt" >ruta="/users.txt" >name=file
+#rep >id=351A >Path="/home/jjonk19/Documentos/Ingenieria/Proyectos/MIA/MIA-Proyecto1_201909035/ Mis Discos/file.txt" >ruta="/users.txt" >name=file
 

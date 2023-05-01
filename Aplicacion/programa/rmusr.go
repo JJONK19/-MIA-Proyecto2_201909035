@@ -221,6 +221,7 @@ func Rmusr(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 	texto = strings.Join(lineas, "\n") + "\n"
 
 	//REINICIAR TODOS LOS ESPACIOS DEL INODO
+	bloque_inicial = recorrer[0]
 	for i := 0; i < 16; i++ {
 		recorrer[i] = -1
 	}

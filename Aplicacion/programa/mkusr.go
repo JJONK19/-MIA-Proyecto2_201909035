@@ -1,13 +1,13 @@
 package programa
 
-import(
-	"regexp"
-	"strings"
-	"unicode"
-	"strconv"
-	"os"
+import (
 	"encoding/binary"
+	"os"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
+	"unicode"
 )
 
 func Mkusr(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]string) {
@@ -41,7 +41,7 @@ func Mkusr(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 	bloques_finales := 0                           //Cantidad de bloques que el archivo usa al final
 	comprobar_bloques := false                     //Indica si se va a buscar espacios
 	nuevos_bloques := 0                            //Indica la cantidad de bloques que van buscar
-	bloque_inicial := 0                            //Numero de bloque que contiene el inicio del archivo
+	bloqueInicial := 0                            //Numero de bloque que contiene el inicio del archivo
 	espacios_vacios := 0                           //Bloques vacios contiguos en el bitmap
 	escribir := ""                                 //Variable para almacenar los cortes del archivo
 
@@ -220,7 +220,7 @@ func Mkusr(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 					existe_grupo = true
 				}
 			}
-		} else {
+		} else if len(atributos) == 5 {
 			if atributos[0] != "0" {
 				if atributos[3] == usuario {
 					existe_usuario = true
@@ -296,7 +296,7 @@ func Mkusr(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 	}
 
 	//DETERMINAR SI HAY ESPACIO EN CASO DE NECESITAR MAS BLOQUES (LOS BLOQUES SON CONSECUTIVOS)
-	bloqueInicial := recorrer[0]
+	bloqueInicial = recorrer[0]
 	tamaño := len(texto)
 	if nuevos_bloques != 0 {
 		posLectura := ToInt(sblock.S_bm_block_start[:]) + ((bloqueInicial+bloques_iniciales) * int(binary.Size(byte(0))))
@@ -346,20 +346,20 @@ func Mkusr(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 		for revisar {
 			// Escribir en el bitmap el bloque
 			c = 'a'
-			posLectura := ToInt(sblock.S_bm_block_start[:]) + ((bloque_inicial) * int(binary.Size(c)))
+			posLectura := ToInt(sblock.S_bm_block_start[:]) + ((bloqueInicial) * int(binary.Size(c)))
 			archivo.Seek(int64(posLectura), 0)
 			binary.Write(archivo, binary.LittleEndian, &c)
 	
 			// Crear y escribir el bloque
 			copy(earchivo.B_content[:], []byte(escribir))
-			posLectura = ToInt(sblock.S_block_start[:]) + ((bloque_inicial) * int(binary.Size(Barchivos{})))
+			posLectura = ToInt(sblock.S_block_start[:]) + ((bloqueInicial) * int(binary.Size(Barchivos{})))
 			archivo.Seek(int64(posLectura), 0)
 			binary.Write(archivo, binary.LittleEndian, &earchivo)
 	
 			// Actualizar el inodo
-			recorrer[posicion] = bloque_inicial
+			recorrer[posicion] = bloqueInicial
 			posicion += 1
-			bloque_inicial += 1
+			bloqueInicial += 1
 			revisar = false
 		}
 	}

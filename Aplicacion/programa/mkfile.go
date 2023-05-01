@@ -2,14 +2,14 @@ package programa
 
 import (
 	"encoding/binary"
+	"fmt"
+	"io/ioutil"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 	"unicode"
-	"io/ioutil"
-	"fmt"
 )
 
 func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]string) {
@@ -21,25 +21,25 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 	}
 
 	//VARIABLES
-	var paramFlag bool = true //Indica si se cumplen con los parametros del comando
-	var required bool = true //Indica si vienen los parametros obligatorios
-	var valid bool = true //Verifica que los valores de los parametros sean correctos
-	var ruta string = "" //Atributo path
-	var padre bool = false //Atributo -r
-	var tamaño int = 0 //Atributo -s
+	var paramFlag bool = true      //Indica si se cumplen con los parametros del comando
+	var required bool = true       //Indica si vienen los parametros obligatorios
+	var valid bool = true          //Verifica que los valores de los parametros sean correctos
+	var ruta string = ""           //Atributo path
+	var padre bool = false         //Atributo -r
+	var tamaño int = 0             //Atributo -s
 	var ruta_contenido string = "" //Atributo -cont
-	var diskName string = "" //Nombre del disco
-	var posDisco int = -1 //Posicion del disco dentro del vector
-	var posParticion int = -1 //Posicion de la particion dentro del vector del disco
-	var posInicio int //Posicion donde inicia la particion
-	var posLectura int //Para determinar la posicion de lectura en disco
-	var sblock Sbloque //Para leer el superbloque
-	var linodo Inodo //Para el manejo de los inodos
-	var lcarpeta Bcarpetas //Para el manejo de bloques de carpetas
-	var continuar bool = true //Usado como bandera al buscar la ruta
-	var nombre_archivo string //Nombre del archivo sin la ruta
-	var inodo_leido int = -1 //Numero de inodo que se está leyendo
-	var contenido string = "" //Texto que se va a escribir en el archivo
+	var diskName string = ""       //Nombre del disco
+	var posDisco int = -1          //Posicion del disco dentro del vector
+	var posParticion int = -1      //Posicion de la particion dentro del vector del disco
+	var posInicio int              //Posicion donde inicia la particion
+	var posLectura int             //Para determinar la posicion de lectura en disco
+	var sblock Sbloque             //Para leer el superbloque
+	var linodo Inodo               //Para el manejo de los inodos
+	var lcarpeta Bcarpetas         //Para el manejo de bloques de carpetas
+	var continuar bool = true      //Usado como bandera al buscar la ruta
+	var nombre_archivo string      //Nombre del archivo sin la ruta
+	var inodo_leido int = -1       //Numero de inodo que se está leyendo
+	var contenido string = ""      //Texto que se va a escribir en el archivo
 
 	//COMPROBACIÓN DE PARAMETROS
 	for i := 1; i < len(*parametros); i++ {
@@ -79,9 +79,9 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 					//fmt.Println("ERROR: El tamaño debe de ser un valor númerico.")
 					return
 				}
-			}else if tag == "cont" {
+			} else if tag == "cont" {
 				ruta_contenido = value
-			}else if tag == "r" {
+			} else if tag == "r" {
 				(*salidas)[0] += "ERROR: El parametro 'r' no recibe ningún valor.\n"
 				paramFlag = false
 			} else {
@@ -109,14 +109,14 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 	}
 
 	//VALIDACION DE PARAMETROS
-    if tamaño < 0 {
-        (*salidas)[0] += "ERROR: El tamaño no debe de ser negativo.\n"
-        valid = false;
-    }
+	if tamaño < 0 {
+		(*salidas)[0] += "ERROR: El tamaño no debe de ser negativo.\n"
+		valid = false
+	}
 
-    if(!valid){
-        return;
-    }
+	if !valid {
+		return
+	}
 
 	// Extraer de la ruta el nombre del archivo y eliminarlo
 	nombre_archivo = ruta[strings.LastIndexAny(ruta, "/")+1:]
@@ -127,13 +127,13 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 	}
 
 	if padre {
-		parametros_mkdir := []string{"mkdir", "p"}
+		parametros_mkdir := []string{"mkdir", "r"}
 		comandos := "path=" + ruta
 		parametros_mkdir = append(parametros_mkdir, comandos)
-		
+
 		Mkdir(&parametros_mkdir, discos, sesion, salidas)
 	}
-	
+
 	//PREPARACIÓN DE PARAMETROS - Separar los nombres que vengan en la ruta.
 	path := strings.Split(ruta, "/")
 
@@ -220,7 +220,7 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 			(*salidas)[0] += "ERROR: El archivo con el contenido no existe.\n"
 			return
 		}
-	
+
 		// LEER EL ARCHIVO
 		contenidoBytes, err := ioutil.ReadFile(ruta_contenido)
 		if err != nil {
@@ -230,11 +230,11 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 		contenido = string(contenidoBytes)
 	}
 
-	 //DETERMINAR EL CONTENIDO DEL ARCHIVO EN CASO NO USAR CONT
+	//DETERMINAR EL CONTENIDO DEL ARCHIVO EN CASO NO USAR CONT
 	if ruta_contenido == "" && tamaño != 0 {
 		restante := tamaño
 		continuar := true
-	
+
 		for continuar {
 			if restante <= 10 {
 				for i := 0; i < restante; i++ {
@@ -250,16 +250,16 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 
 	// DETERMINAR EL NUMERO DE BLOQUES QUE VA A USAR EL ARCHIVO
 	bloque := 0
-	if len(contenido) % 63 == 0 {
+	if len(contenido)%63 == 0 {
 		bloque = len(contenido) / 63
 	} else {
 		bloque = (len(contenido) / 63) + 1
 	}
 
 	if bloque > 16 {
-        (*salidas)[0] += "ERROR: El archivo supera el limite permitido. No hay espacio en el inodo.\n" 
-        return;
-    }
+		(*salidas)[0] += "ERROR: El archivo supera el limite permitido. No hay espacio en el inodo.\n"
+		return
+	}
 
 	// DETERMINAR SI HAY ESPACIO PARA EL NUEVO ARCHIVO
 	var espacios_vacios int
@@ -268,7 +268,7 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 		posLectura := ToInt(sblock.S_bm_block_start[:]) + i
 		archivo.Seek(int64(posLectura), 0)
 		binary.Read(archivo, binary.LittleEndian, &a)
-		
+
 		if a == 'p' || a == 'a' || a == 'c' {
 			// No hacer nada
 		} else {
@@ -280,7 +280,6 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 		(*salidas)[0] += "ERROR: No hay bloques disponibles para escribir el archivo.\n"
 		return
 	}
-
 
 	//BUSCAR LA CARPETA DONDE SE ALMACENARÁ EL ARCHIVO
 	continuar = true
@@ -295,11 +294,11 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 		(*salidas)[0] += "ERROR: La ruta ingresada es erronea.\n"
 		return
 	}
-	
-	inodoTemporal := -1
-	recorrer := ToStringArray(linodo.I_block[:])
+
 	for continuar {
+		inodoTemporal := -1
 		//Buscar si existe la carpeta
+		recorrer := ToStringArray(linodo.I_block[:])
 		for i := 0; i < 16; i++ {
 			if inodoTemporal != -1 {
 				break
@@ -321,7 +320,7 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 					posLectura = ToInt(sblock.S_inode_start[:]) + ((binary.Size(Inodo{})) * (inodo_leido))
 					archivo.Seek(int64(posLectura), 0)
 					binary.Write(archivo, binary.LittleEndian, &linodo)
-					
+
 					inodoTemporal = ToInt(lcarpeta.B_content[j].B_inodo[:])
 					inodo_leido = inodoTemporal
 					posicion += 1
@@ -341,14 +340,14 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 			continuar = false
 		} else if posicion == len(path) && linodo.I_type[0] == '1' {
 			continuar = false
-			(*salidas)[0] +="ERROR: No se encontró la carpeta para crear el archivo.\n"
+			(*salidas)[0] += "ERROR: No se encontró la carpeta para crear el archivo.\n"
 			inodo_leido = -1
 		}
 	}
 
 	if inodo_leido == -1 {
-        return;
-    }
+		return
+	}
 
 	//VERIFICAR QUE POSEA PERMISO PARA ESCRIBIR
 	permisos := ToString(linodo.I_perm[:])
@@ -385,7 +384,7 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 	}
 
 	//BUSCAR UN ESPACIO EN LA CARPETA Y AÑADIR EL ARCHIVO
-	inodoTemporal = -1
+	inodoTemporal := -1
 	bloque_intermedio := -1
 	var cinodo Inodo
 	var ccarpeta Bcarpetas
@@ -397,7 +396,7 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 	}
 
 	//Buscar un espacio en los bloques directos
-	recorrer = ToStringArray(linodo.I_block[:])
+	recorrer := ToStringArray(linodo.I_block[:])
 	for i := 0; i < 16; i++ {
 		if inodoTemporal != -1 {
 			break
@@ -418,7 +417,7 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 						archivo.Seek(int64(posLectura), 0)
 						binary.Read(archivo, binary.LittleEndian, &c)
 
-						if c == byte(0) {
+						if c == byte('0') {
 							inodoTemporal = a
 							c = '1'
 							archivo.Seek(int64(posLectura), 0)
@@ -438,7 +437,7 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 					copy(lcarpeta.B_content[j].B_inodo[:], strconv.Itoa(inodoTemporal))
 					posLectura = ToInt(sblock.S_block_start[:]) + (binary.Size(Bcarpetas{}) * recorrer[i])
 					archivo.Seek(int64(posLectura), 0)
-					binary.Read(archivo, binary.LittleEndian, &lcarpeta)
+					binary.Write(archivo, binary.LittleEndian, &lcarpeta)
 
 					enteros := ToInt(sblock.S_free_inodes_count[:]) - 1
 					sblock.S_free_inodes_count = [40]byte{}
@@ -453,7 +452,7 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 				archivo.Seek(int64(posLectura), 0)
 				binary.Read(archivo, binary.LittleEndian, &c)
 
-				if c == byte(0) {
+				if c == byte('0') {
 					inodoTemporal = a
 					c = '1'
 					archivo.Seek(int64(posLectura), 0)
@@ -472,7 +471,7 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 				archivo.Seek(int64(posLectura), 0)
 				binary.Read(archivo, binary.LittleEndian, &c)
 
-				if c == byte(0) {
+				if c == byte('0') {
 					bloque_intermedio = a
 					c = 'c'
 					archivo.Seek(int64(posLectura), 0)
@@ -536,49 +535,49 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 	copy(cinodo.I_block[:], sliceTemp)
 	cinodo.I_type[0] = byte('1')
 	copy(cinodo.I_perm[:], "664")
-	posLectura = ToInt(sblock.S_inode_start[:])  + (binary.Size(Inodo{}) * inodoTemporal);
+	posLectura = ToInt(sblock.S_inode_start[:]) + (binary.Size(Inodo{}) * inodoTemporal)
 	archivo.Seek(int64(posLectura), 0)
 	binary.Write(archivo, binary.LittleEndian, cinodo)
 
 	//Actualizar Variables
-	posLectura = ToInt(sblock.S_inode_start[:]) + (binary.Size(Inodo{}) * inodoTemporal);
+	posLectura = ToInt(sblock.S_inode_start[:]) + (binary.Size(Inodo{}) * inodoTemporal)
 	archivo.Seek(int64(posLectura), 0)
 	binary.Read(archivo, binary.LittleEndian, &linodo)
 	inodo_leido = inodoTemporal
 
 	//CREAR EL ARCHIVO
-    escribir := ""
-    continuar = true
-    posicion = 0
+	escribir := ""
+	continuar = true
+	posicion = 0
 
-    if len(contenido) == 0{
-        continuar = false;
-    }
+	if len(contenido) == 0 {
+		continuar = false
+	}
 
 	recorrer = ToStringArray(linodo.I_block[:])
-	for continuar{
-        revisar := true;
-        bloque_usado := -1;
-        earchivo := Barchivos{};
+	for continuar {
+		revisar := true
+		bloque_usado := -1
+		earchivo := Barchivos{}
 
-        if len(contenido) > 63 {
-            escribir = contenido[0:63]
-			contenido = contenido[63:len(contenido)]
-        }else{
-            escribir = contenido
+		if len(contenido) > 63 {
+			escribir = contenido[0:63]
+			contenido = contenido[63:]
+		} else {
+			escribir = contenido
 			continuar = false
-        }
-        
-        for revisar{
+		}
+
+		for revisar {
 
 			for a := 0; a < ToInt(sblock.S_blocks_count[:]); a++ {
 				posLectura := ToInt(sblock.S_bm_block_start[:]) + ((a) * (binary.Size(byte(0))))
 				archivo.Seek(int64(posLectura), 0)
 				binary.Read(archivo, binary.LittleEndian, &c)
 
-				if c == byte(0) {
+				if c == byte('0') {
 					bloque_usado = a
-					c = 'c'
+					c = 'a'
 					archivo.Seek(int64(posLectura), 0)
 					binary.Write(archivo, binary.LittleEndian, &c)
 					break
@@ -597,32 +596,30 @@ func Mkfile(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]
 			binary.Write(archivo, binary.LittleEndian, &earchivo)
 
 			//Actualizar el inodo
-			recorrer[posicion] = bloque_usado;
-			posicion += 1;
-			revisar = false;
-			
+			recorrer[posicion] = bloque_usado
+			posicion += 1
+			revisar = false
+
 			//Actualizar el superbloque
 			enteros := ToInt(sblock.S_free_blocks_count[:]) - 1
 			sblock.S_free_blocks_count = [40]byte{}
 			copy(sblock.S_free_blocks_count[:], strconv.Itoa(enteros))
-        }
-    }
-             
-    //ESCRIBIR EL INODO CON TODOS LOS CAMBIOS
+		}
+	}
+
+	//ESCRIBIR EL INODO CON TODOS LOS CAMBIOS
 	linodo.I_mtime = [30]byte{}
 	copy(linodo.I_mtime[:], []byte(time.Now().String()))
-	linodo.I_s = [40]byte{}
-	copy(linodo.I_s[:],  strconv.Itoa(tamaño))
 	sliceTemp = ToByteArray(recorrer)
 	copy(linodo.I_block[:], sliceTemp)
 
 	posLectura = ToInt(sblock.S_inode_start[:]) + (int(binary.Size(Inodo{})) * int(inodo_leido))
 	archivo.Seek(int64(posLectura), 0)
-	binary.Write(archivo, binary.LittleEndian, linodo)
+	binary.Write(archivo, binary.LittleEndian, &linodo)
 
 	//Actualizar el superbloque
 	archivo.Seek(int64(posInicio), 0)
 	binary.Write(archivo, binary.LittleEndian, &sblock)
-	
-	(*salidas)[0] += "MENSAJE: Archivo creadas correctamente.\n" 
+
+	(*salidas)[0] += "MENSAJE: Archivo creado correctamente.\n"
 }

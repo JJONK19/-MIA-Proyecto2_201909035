@@ -1,13 +1,13 @@
 package programa
 
-import(
-	"regexp"
-	"strings"
-	"unicode"
-	"strconv"
-	"os"
+import (
 	"encoding/binary"
+	"os"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
+	"unicode"
 )
 
 func Mkgrp(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]string) {
@@ -236,12 +236,12 @@ func Mkgrp(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 	} else {
 		bloques_finales = (len(texto) / 63) + 1
 	}
-
+	 
 	//DECIDIR SI SE VA A AÑADIR UN NUEVO BLOQUE
 	if bloques_finales != bloques_iniciales {
 		comprobar_bloques = true
 	}
-
+	
 	// ACTUALIZAR EL SUPERBLOQUE
 	enteros := ToInt(sblock.S_free_blocks_count[:]) - (bloques_finales - bloques_iniciales)
 	sblock.S_free_blocks_count = [40]byte{}
@@ -275,10 +275,10 @@ func Mkgrp(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 	}
 
 	//DETERMINAR SI HAY ESPACIO EN CASO DE NECESITAR MAS BLOQUES (LOS BLOQUES SON CONSECUTIVOS)
-	bloqueInicial := recorrer[0]
+	bloque_inicial = recorrer[0]
 	tamaño := len(texto)
 	if nuevos_bloques != 0 {
-		posLectura := ToInt(sblock.S_bm_block_start[:]) + ((bloqueInicial+bloques_iniciales) * int(binary.Size(byte(0))))
+		posLectura := ToInt(sblock.S_bm_block_start[:]) + (bloque_inicial+bloques_iniciales)
 
 		// Contar el número de espacios vacíos
 		continuar := true
@@ -305,7 +305,7 @@ func Mkgrp(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 	for i := 0; i < 16; i++ {
 		recorrer[i] = -1
 	}
-
+	
 	// REESCRIBIR EL ARCHIVO DE USUARIOS
 	continuar := true
 	posicion = 0
@@ -356,4 +356,5 @@ func Mkgrp(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 	binary.Write(archivo, binary.LittleEndian, linodo)
 
 	(*salidas)[0] += "MENSAJE: Grupo añadido correctamente.\n"
+	
 }

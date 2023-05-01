@@ -33,7 +33,7 @@ func Rmgrp(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 	var larchivo Barchivos //Para el manejo de bloques de archivo
 	var texto string = "" //Para almacenar el contenido del archivo de usuarios
 	var existe_grupo bool = false //Indica si se encontró el grupo
-	var bloque_inicial int //Numero de bloque que contiene el inicio del archivo
+	var bloqueInicial int //Numero de bloque que contiene el inicio del archivo
 	var escribir string //Variable para almacenar los cortes del archivo
 
 	//COMPROBACIÓN DE PARAMETROS
@@ -220,6 +220,7 @@ func Rmgrp(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 	texto = strings.Join(lineas, "\n") + "\n"
 
 	//REINICIAR TODOS LOS ESPACIOS DEL INODO
+	bloqueInicial = recorrer[0]
 	for i := 0; i < 16; i++ {
 		recorrer[i] = -1
 	}
@@ -243,20 +244,20 @@ func Rmgrp(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 		for revisar {
 			// Escribir en el bitmap el bloque
 			c = 'a'
-			posLectura := ToInt(sblock.S_bm_block_start[:]) + ((bloque_inicial) * int(binary.Size(c)))
+			posLectura := ToInt(sblock.S_bm_block_start[:]) + ((bloqueInicial) * int(binary.Size(c)))
 			archivo.Seek(int64(posLectura), 0)
 			binary.Write(archivo, binary.LittleEndian, &c)
 	
 			// Crear y escribir el bloque
 			copy(earchivo.B_content[:], []byte(escribir))
-			posLectura = ToInt(sblock.S_block_start[:]) + ((bloque_inicial) * int(binary.Size(Barchivos{})))
+			posLectura = ToInt(sblock.S_block_start[:]) + ((bloqueInicial) * int(binary.Size(Barchivos{})))
 			archivo.Seek(int64(posLectura), 0)
 			binary.Write(archivo, binary.LittleEndian, &earchivo)
 	
 			// Actualizar el inodo
-			recorrer[posicion] = bloque_inicial
+			recorrer[posicion] = bloqueInicial
 			posicion += 1
-			bloque_inicial += 1
+			bloqueInicial += 1
 			revisar = false
 		}
 	}

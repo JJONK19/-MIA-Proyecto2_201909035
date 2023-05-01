@@ -181,12 +181,12 @@ func Mkdir(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 		return
 	}
 
-	recorrer := ToStringArray(linodo.I_block[:])
 	for continuar {
 		crear := false
 		inodoTemporal := -1
 
 		// 1. Buscar si existe la carpeta
+		recorrer := ToStringArray(linodo.I_block[:])
 		for i := 0; i < 16; i++ {
 			if inodoTemporal != -1 {
 				break
@@ -272,7 +272,6 @@ func Mkdir(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 			bloque_intermedio := -1
 			cinodo := Inodo{}
 			ccarpeta := Bcarpetas{}
-			c := byte('-')
 
 			for z := 0; z < 4; z++ {
 				copy(ccarpeta.B_content[z].B_name[:], "-")
@@ -297,11 +296,12 @@ func Mkdir(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 						if carpeta == "-" {
 
 							for a := 0; a < ToInt(sblock.S_inodes_count[:]); a++ {
+								var c byte
 								posLectura := ToInt(sblock.S_bm_inode_start[:]) + ((a) * (binary.Size(byte(0))))
 								archivo.Seek(int64(posLectura), 0)
 								binary.Read(archivo, binary.LittleEndian, &c)
 
-								if c == byte(0) {
+								if c == byte('0') {
 									inodoTemporal = a
 									c = '1'
 									archivo.Seek(int64(posLectura), 0)
@@ -315,14 +315,32 @@ func Mkdir(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 								}
 							}
 
-							//**Pendiente
+							for a := 0; a < ToInt(sblock.S_blocks_count[:]); a++ {
+								var c byte
+								posLectura := ToInt(sblock.S_bm_block_start[:]) + ((a) * (binary.Size(byte(0))))
+								archivo.Seek(int64(posLectura), 0)
+								binary.Read(archivo, binary.LittleEndian, &c)
+								if c == byte('0') {
+									bloque_usado = a
+									c = 'c'
+									archivo.Seek(int64(posLectura), 0)
+									binary.Write(archivo, binary.LittleEndian, &c)
+									break
+								}
+
+								if a == ToInt(sblock.S_blocks_count[:])-1 {
+									(*salidas)[0] += "ERROR: No hay bloques disponibles\n."
+									return
+								}
+							}
+
 							lcarpeta.B_content[j].B_name = [12]byte{}
 							copy(lcarpeta.B_content[j].B_name[:], path[posicion])
 							lcarpeta.B_content[j].B_inodo = [4]byte{}
 							copy(lcarpeta.B_content[j].B_inodo[:], strconv.Itoa(inodoTemporal))
 							posLectura = ToInt(sblock.S_block_start[:]) + (binary.Size(Bcarpetas{}) * recorrer[i])
 							archivo.Seek(int64(posLectura), 0)
-							binary.Read(archivo, binary.LittleEndian, &lcarpeta)
+							binary.Write(archivo, binary.LittleEndian, &lcarpeta)
 
 							//Actualizar el superbloque
 							enteros := ToInt(sblock.S_free_blocks_count[:]) - 1
@@ -339,11 +357,12 @@ func Mkdir(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 				} else {
 
 					for a := 0; a < ToInt(sblock.S_inodes_count[:]); a++ {
+						var c byte
 						posLectura := ToInt(sblock.S_bm_inode_start[:]) + ((a) * (binary.Size(byte(0))))
 						archivo.Seek(int64(posLectura), 0)
 						binary.Read(archivo, binary.LittleEndian, &c)
 
-						if c == byte(0) {
+						if c == byte('0') {
 							inodoTemporal = a
 							c = '1'
 							archivo.Seek(int64(posLectura), 0)
@@ -358,11 +377,12 @@ func Mkdir(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 					}
 
 					for a := 0; a < ToInt(sblock.S_blocks_count[:]); a++ {
+						var c byte
 						posLectura := ToInt(sblock.S_bm_block_start[:]) + ((a) * (binary.Size(byte(0))))
 						archivo.Seek(int64(posLectura), 0)
 						binary.Read(archivo, binary.LittleEndian, &c)
 
-						if c == byte(0) {
+						if c == byte('0') {
 							bloque_intermedio = a
 							c = 'c'
 							archivo.Seek(int64(posLectura), 0)
@@ -377,11 +397,12 @@ func Mkdir(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 					}
 
 					for a := 0; a < ToInt(sblock.S_blocks_count[:]); a++ {
+						var c byte
 						posLectura := ToInt(sblock.S_bm_block_start[:]) + ((a) * (binary.Size(byte(0))))
 						archivo.Seek(int64(posLectura), 0)
 						binary.Read(archivo, binary.LittleEndian, &c)
 
-						if c == byte(0) {
+						if c == byte('0') {
 							bloque_usado = a
 							c = 'c'
 							archivo.Seek(int64(posLectura), 0)
@@ -446,15 +467,15 @@ func Mkdir(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 			copy(cinodo.I_block[:], sliceTemp)
 			cinodo.I_type[0] = byte('0')
 			copy(cinodo.I_perm[:], "664")
-			posLectura = ToInt(sblock.S_inode_start[:])  + (binary.Size(Inodo{}) * inodoTemporal);
+			posLectura = ToInt(sblock.S_inode_start[:]) + (binary.Size(Inodo{}) * inodoTemporal)
 			archivo.Seek(int64(posLectura), 0)
-			binary.Write(archivo, binary.LittleEndian, cinodo)
+			binary.Write(archivo, binary.LittleEndian, &cinodo)
 
 			// CREAR E INICIAR EL BLOQUE DE CARPETAS
 			ccarpeta = Bcarpetas{}
 			for i := 0; i < 4; i++ {
 				copy(ccarpeta.B_content[i].B_name[:], "-")
-				copy(ccarpeta.B_content[i].B_inodo [:], []byte(strconv.Itoa(-1)))
+				copy(ccarpeta.B_content[i].B_inodo[:], []byte(strconv.Itoa(-1)))
 			}
 
 			// REGISTRAR EL INODO ACTUAL Y EL DEL PADRE
@@ -465,45 +486,45 @@ func Mkdir(parametros *[]string, discos *[]Disco, sesion *Usuario, salidas *[6]s
 			ccarpeta.B_content[1].B_inodo = [4]byte{}
 			copy(ccarpeta.B_content[1].B_name[:], "..")
 			copy(ccarpeta.B_content[1].B_inodo[:], []byte(strconv.Itoa(inodo_leido)))
-			
-			posLectura = ToInt(sblock.S_block_start[:]) + (binary.Size(Bcarpetas{}) * bloque_usado);
+
+			posLectura = ToInt(sblock.S_block_start[:]) + (binary.Size(Bcarpetas{}) * bloque_usado)
 			archivo.Seek(int64(posLectura), 0)
 			binary.Write(archivo, binary.LittleEndian, &ccarpeta)
 
 			//Actualizar Variables
-            posLectura = ToInt(sblock.S_inode_start[:]) + (binary.Size(Inodo{}) * inodoTemporal);
-            archivo.Seek(int64(posLectura), 0)
-            binary.Read(archivo, binary.LittleEndian, &linodo)
-            inodo_leido = inodoTemporal;
-            posicion += 1;
+			posLectura = ToInt(sblock.S_inode_start[:]) + (binary.Size(Inodo{}) * inodoTemporal)
+			archivo.Seek(int64(posLectura), 0)
+			binary.Read(archivo, binary.LittleEndian, &linodo)
+			inodo_leido = inodoTemporal
+			posicion += 1
 
-            //Actualizar el superbloque
+			//Actualizar el superbloque
 			archivo.Seek(int64(posInicio), 0)
-            binary.Write(archivo, binary.LittleEndian, &sblock)
+			binary.Write(archivo, binary.LittleEndian, &sblock)
 		}
 
 		//3. Finalizar el proceso si no existe la carpeta y no esta habilitado -p
-        if inodoTemporal == -1 && !padre{
-            continuar = false;
-        }
+		if inodoTemporal == -1 && !padre {
+			continuar = false
+		}
 
-        //4. Determinar si se finaliza el proceso 
-        if linodo.I_type[0] == '1' || posicion == len(path){
-            continuar = false;
-        }
+		//4. Determinar si se finaliza el proceso
+		if linodo.I_type[0] == '1' || posicion == len(path) {
+			continuar = false
+		}
 	}
 
 	if error_padre {
-        (*salidas)[0] += "ERROR: Error en la ruta. Una de las carpetas no existe.\n" 
-        return
-    }else if error_permisos {
-        (*salidas)[0] += "ERROR: No posee los permisos para crear la carpeta.\n"
-        return
-    }else if posicion != len(path) {
-        (*salidas)[0] += "ERROR: Ocurrió un error. No se pudo crear la carpeta.\n"
-        return
-    }
+		(*salidas)[0] += "ERROR: Error en la ruta. Una de las carpetas no existe.\n"
+		return
+	} else if error_permisos {
+		(*salidas)[0] += "ERROR: No posee los permisos para crear la carpeta.\n"
+		return
+	} else if posicion != len(path) {
+		(*salidas)[0] += "ERROR: Ocurrió un error. No se pudo crear la carpeta.\n"
+		return
+	}
 
-	(*salidas)[0] += "MENSAJE: Carpetas creadas correctamente.\n" 
+	(*salidas)[0] += "MENSAJE: Carpetas creadas correctamente.\n"
 
 }
